@@ -26,11 +26,11 @@ include_directories(
   /usr/local/include
 )
 
-add_executable(execute_rclcpp_mqtt src/main.cpp)
-ament_target_dependencies(execute_rclcpp_mqtt rcl rclcpp std_msgs)
+add_executable(ros_mqtt_bridge src/main.cpp)
+ament_target_dependencies(ros_mqtt_bridge rcl rclcpp std_msgs)
 
 install(TARGETS
-  execute_rclcpp_mqtt
+  ros_mqtt_bridge
   DESTINATION lib/${PROJECT_NAME}
 )
 
