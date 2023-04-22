@@ -6,9 +6,17 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <math.h>
+#include <unistd.h>
+#include <signal.h>
+#include <functional>
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
+
+#include "mqtt/mqtt.hpp"
+
+#define LOG_RCL "[RCL]"
 
 using namespace std::chrono_literals;
 
