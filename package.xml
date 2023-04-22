@@ -3,11 +3,17 @@
 <package format="3">
   <name>rclcpp_mqtt_client</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="201840103@email.daelim.ac.kr">reidlo</maintainer>
+  <description>rclcpp_mqtt_client</description>
+  <maintainer email="naru5135@wavem.net">reidlo</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>actionlib_msgs</depend>
+  <depend>mosquittopp</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
