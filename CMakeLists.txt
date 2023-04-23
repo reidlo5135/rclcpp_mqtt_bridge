@@ -27,7 +27,7 @@ include_directories(
   /usr/local/include
 )
 
-add_executable(ros_mqtt_bridge src/ros_mqtt_bridge/ros_mqtt_bridge.cpp src/mqtt/mqtt.cpp)
+add_executable(ros_mqtt_bridge src/ros_mqtt_bridge.cpp src/mqtt/mqtt.cpp)
 target_link_libraries(ros_mqtt_bridge ${PAHO_MQTT_C_LIB})
 ament_target_dependencies(ros_mqtt_bridge rcl rclcpp std_msgs)
 
