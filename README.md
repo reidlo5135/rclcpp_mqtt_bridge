@@ -9,7 +9,7 @@
     - [Run Test](#run-test)
 
 ## Environment
-* <img src="https://img.shields.io/badge/cpp-red?style=for-the-badge&logo=cplusplus&logoColor=white">
+* <img src="https://img.shields.io/badge/cpp-magenta?style=for-the-badge&logo=cplusplus&logoColor=white">
 * <img src="https://img.shields.io/badge/cmake-064F8C?style=for-the-badge&logo=cmake&logoColor=white">
 * <img src="https://img.shields.io/badge/mqtt-660066?style=for-the-badge&logo=mqtt&logoColor=white">
 * <img src="https://img.shields.io/badge/ROS2-22314E?style=for-the-badge&logo=ros&logoColor=white">
@@ -31,11 +31,10 @@ sudo make install
 
 ### Clone & Colcon Build
 ```bash
-git clone https://github.com/reidlo5135/rclcpp_mqtt_client.git
-cd ${your workspace}
 source /opt/ros/foxy/setup.bash
-colcon build --symlink-install
+git clone https://github.com/reidlo5135/rclcpp_mqtt_client.git
 cd rclcpp_mqtt_client
+colcon build --symlink-install
 source install/setup.bash
 ```
 
