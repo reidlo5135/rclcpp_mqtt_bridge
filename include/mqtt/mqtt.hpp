@@ -7,7 +7,7 @@
 #include "MQTTClient.h"
 
 #define LOG_MQTT "[MQTT]"
-#define MQTT_ADDRESS     "tcp://192.168.0.110:1883"
+#define MQTT_ADDRESS    "tcp://localhost:1883"
 #define MQTT_CLIENTID    "ros_mqtt_bridge"
 #define MQTT_QOS         1
 #define MQTT_TIMEOUT     10000L
