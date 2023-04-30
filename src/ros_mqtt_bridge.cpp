@@ -1,12 +1,14 @@
 #include "ros_mqtt_bridge/ros_mqtt_bridge.hpp"
+#include "mqtt/mqtt.hpp"
 
 void MinimalPublisher::timer_callback() {
     auto message = std_msgs::msg::String();
     message.data = "Hello World! [" + std::to_string(count++) + "]";
     RCLCPP_INFO(this->get_logger(), "%s Publishing : %s", LOG_RCL, message.data.c_str());
     publisher->publish(message);
-    Mqtt mqtt;
-    mqtt.mqtt_publish("/chatter", "hi");
+    std::cout << "Starting the MQTT client..." << std::endl;
+    mqtt_client client;
+    client.run();
 }
 
 int main(int argc, char** argv) {

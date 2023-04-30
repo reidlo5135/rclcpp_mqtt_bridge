@@ -19,16 +19,17 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(actionlib_msgs REQUIRED)
-find_library(PAHO_MQTT_C_LIB paho-mqtt3c PATHS /usr/local/lib)
+find_library(PAHO_MQTT_CPP_LIB paho-mqttpp3 PATHS /usr/local/lib)
 
 include_directories(
   include
   include/${PROJECT_NAME}
   /usr/local/include
+  /usr/local/include/mqtt
 )
 
 add_executable(ros_mqtt_bridge src/ros_mqtt_bridge.cpp src/mqtt/mqtt.cpp)
-target_link_libraries(ros_mqtt_bridge ${PAHO_MQTT_C_LIB})
+target_link_libraries(ros_mqtt_bridge ${PAHO_MQTT_CPP_LIB} -lpaho-mqtt3as)
 ament_target_dependencies(ros_mqtt_bridge rcl rclcpp std_msgs)
 
 install(TARGETS

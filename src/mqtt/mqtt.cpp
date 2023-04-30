@@ -1,107 +1,66 @@
-#include "mqtt/mqtt.hpp"
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+#include <csignal>
+#include "mqtt/async_client.h"
 
-Mqtt::Mqtt() : connection_opts(MQTTClient_connectOptions_initializer), message(MQTTClient_message_initializer)  {
+const std::string SERVER_ADDRESS { "tcp://localhost:1883" };
+const std::string CLIENT_ID { "paho_cpp_async_subcribe" };
+const std::string TOPIC { "test" };
 
-}
+class mqtt_callback : public virtual mqtt::callback {
+    public:
+        void connection_lost(const std::string& cause) override {
+            std::cout << "\nConnection lost" << std::endl;
+            if (!cause.empty()) {
+                std::cout << "Cause: " << cause << std::endl;
+            }
+        }
 
-Mqtt::~Mqtt() {
+        void message_arrived(mqtt::const_message_ptr msg) override {
+            std::cout << "Message arrived:" << std::endl;
+            std::cout << "  topic: " << msg->get_topic() << std::endl;
+            std::cout << "  payload: " << msg->to_string() << std::endl;
+        }
 
-}
+        void delivery_complete(mqtt::delivery_token_ptr token) override {}
+};
 
-void Mqtt::mqtt_publish(char * topic, char * payload) {
-    int rc;
+class mqtt_client {
+    public:
+        mqtt_client() : client_(SERVER_ADDRESS, CLIENT_ID) {
+            mqtt::connect_options conn_opts;
+            conn_opts.set_keep_alive_interval(20);
+            conn_opts.set_clean_session(true);
 
-    if ((rc = MQTTClient_create(&client, MQTT_ADDRESS, MQTT_CLIENT_ID, MQTTCLIENT_PERSISTENCE_NONE, NULL)) != MQTTCLIENT_SUCCESS) {
-        std::cerr << LOG_MQTT << " failed to create client, return code "<< rc << "\n";
-        rc = EXIT_FAILURE;
-    }
+            client_.set_callback(mqtt_cb_);
 
-    connection_opts.keepAliveInterval = 20;
-    connection_opts.cleansession = 1;
+            try {
+                std::cout << "Connecting to the MQTT server..." << std::flush;
+                client_.connect(conn_opts)->wait();
+                std::cout << "OK" << std::endl;
+            }
+            catch (const mqtt::exception& exc) {
+                std::cerr << "\nERROR: Unable to connect to MQTT server: " << exc.what() << std::endl;
+                exit(1);
+            }
+        }
 
-    if ((rc = MQTTClient_connect(client, &connection_opts)) != MQTTCLIENT_SUCCESS) {
-        std::cerr << LOG_MQTT << " failed to connect broker, return code "<< rc << "\n";
-        rc = EXIT_FAILURE;
-    }
+        void subscribe() {
+            mqtt::token_ptr tok;
+            mqtt::subscribe_options sub_opts;
+            std::cout << "Subscribing to topic '" << TOPIC << "'..." << std::flush;
+            tok = client_.subscribe(TOPIC, 1, sub_opts);
+            tok->wait();
+            std::cout << "OK" << std::endl;
+        }
 
-    message.payload = payload;
-    message.payloadlen = (int)strlen(payload);
-    message.qos = MQTT_QOS;
-    message.retained = 0;
-    if ((rc = MQTTClient_publishMessage(client, topic, &message, &token)) != MQTTCLIENT_SUCCESS) {
-        std::cerr << LOG_MQTT << " failed to publish, return code "<< rc << "\n";
-        rc = EXIT_FAILURE;
-    } else {
-        std::cout << LOG_MQTT << " published to [" << topic << "] with [" << message.payload << "] --length [" << message.payloadlen << "\n";
-    }
- 
-    std::cout << LOG_MQTT << " waiting for up to " << (int)(MQTT_TIMEOUT/1000) << " seconds for publication of [" << payload << "] on topic [" << topic << "]" << " for client with id [" << MQTT_CLIENT_ID << "]" << "\n";
-    rc = MQTTClient_waitForCompletion(client, token, MQTT_TIMEOUT);
-    std::cout << LOG_MQTT << " message with delivery token " << token << " delivered" << "\n";
-}
+        void run() {
+            subscribe();
+            while (true) {}
+        }
 
-void Mqtt::on_delivered(MQTTClient_deliveryToken dt) {
-    std::cout << LOG_MQTT << " subscription message with token value " << dt << " delivery confirmed" << "\n";
-    delivered_token = dt;
-}
-
-int Mqtt::on_message(char * topic, int topic_len, MQTTClient_message * message) {
-    std::cout << LOG_MQTT << " message arrived from {" << topic << "} with message [" << message -> payload << "\n";
-    MQTTClient_freeMessage(&message);
-    MQTTClient_free(topic);
-    return 1;
-}
-
-void Mqtt::on_connection_lost(char * cause) {
-    std::cout << LOG_MQTT << " connection lost" << "\n";
-    std::cout << LOG_MQTT << " cause" << cause << "\n";
-}
-
-int Mqtt::mqtt_subscribe(char * topic) {
-    int rc;
-    Mqtt * mqtt;
-
-    if((rc = MQTTClient_create(&client, MQTT_ADDRESS, MQTT_CLIENT_ID, MQTTCLIENT_PERSISTENCE_NONE, NULL)) != MQTTCLIENT_SUCCESS) {
-        printf("%s failed to create client, return code %d \n", LOG_MQTT, rc);
-        rc = EXIT_FAILURE;
-        goto exit;
-    } else {
-        printf("%s client created... %d \n", LOG_MQTT, rc);
-    };
-
-    connection_opts.keepAliveInterval = 20;
-    connection_opts.cleansession = 1;
-    if((rc = MQTTClient_connect(client, &connection_opts)) != MQTTCLIENT_SUCCESS) {
-        printf("%s failed to connect, return code %d \n", LOG_MQTT, rc);
-        rc = EXIT_FAILURE;
-        goto destroy_exit;
-    } else {
-        printf("%s connection established... %d \n", LOG_MQTT, rc);
-    };
-
-    printf("%s subscribing to topic %s for client id %s using MQTT_QOS %d \n\n", LOG_MQTT, topic, MQTT_CLIENT_ID, MQTT_QOS);
-    printf("%s Press Q<Enter> to quit \n\n", LOG_MQTT);
-    if((rc = MQTTClient_subscribe(client, topic, MQTT_QOS)) != MQTTCLIENT_SUCCESS) {
-        printf("%s failed to subscribe, return code %d \n", LOG_MQTT, rc);
-        rc = EXIT_FAILURE;
-    } else {
-        int ch;
-        do {
-            ch = getchar();
-        } while(ch != 'Q' && ch != 'q');
-        if((rc = MQTTClient_unsubscribe(client, topic)) != MQTTCLIENT_SUCCESS) {
-                printf("%s failed to unsubscribe, return code %d \n", LOG_MQTT, rc);
-                rc = EXIT_FAILURE;
-        };
-    };
-
-    if((rc = MQTTClient_disconnect(client, 10000)) != MQTTCLIENT_SUCCESS) {
-        printf("%s faield to disconnect, return code %d \n", LOG_MQTT, rc);
-        rc = EXIT_FAILURE;
-    };
-
-    destroy_exit:
-        MQTTClient_destroy(&client);
-    exit:
-        return rc;
-}
+    private:
+        mqtt::async_client client_;
+        mqtt_callback mqtt_cb_;
+};
