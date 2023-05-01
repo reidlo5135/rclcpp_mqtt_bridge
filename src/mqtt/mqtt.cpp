@@ -1,66 +1,131 @@
-#include <iostream>
-#include <cstring>
-#include <cstdlib>
-#include <csignal>
-#include "mqtt/async_client.h"
+#include "mqtt/mqtt.hpp"
 
-const std::string SERVER_ADDRESS { "tcp://localhost:1883" };
-const std::string CLIENT_ID { "paho_cpp_async_subcribe" };
-const std::string TOPIC { "test" };
+MQTTActionListener::MQTTActionListener(const std::string& name)
+: name_(name) {
 
-class mqtt_callback : public virtual mqtt::callback {
-    public:
-        void connection_lost(const std::string& cause) override {
-            std::cout << "\nConnection lost" << std::endl;
-            if (!cause.empty()) {
-                std::cout << "Cause: " << cause << std::endl;
-            }
-        }
+}
 
-        void message_arrived(mqtt::const_message_ptr msg) override {
-            std::cout << "Message arrived:" << std::endl;
-            std::cout << "  topic: " << msg->get_topic() << std::endl;
-            std::cout << "  payload: " << msg->to_string() << std::endl;
-        }
+MQTTActionListener::~MQTTActionListener() {
 
-        void delivery_complete(mqtt::delivery_token_ptr token) override {}
-};
+}
 
-class mqtt_client {
-    public:
-        mqtt_client() : client_(SERVER_ADDRESS, CLIENT_ID) {
-            mqtt::connect_options conn_opts;
-            conn_opts.set_keep_alive_interval(20);
-            conn_opts.set_clean_session(true);
+void MQTTActionListener::on_success(const mqtt::token& tok) {
+    std::cout << LOG_MQTT << name_ << " success" << "\n";
+    const int message_id = tok.get_message_id();
+    if (message_id != 0) {
+        std::cout << LOG_MQTT << " for token: [" << message_id << "]" << "\n";
+    }
+    auto top = tok.get_topics();
+    if (top && !top->empty()) {
+        std::cout << "\ttoken topic: '" << (*top)[0] << "', ..." << "\n";
+    }
+    std::cout << "\n";
+}
 
-            client_.set_callback(mqtt_cb_);
+void MQTTActionListener::on_failure(const mqtt::token& tok) {
+    std::cout << LOG_MQTT << name_ << " failure";
+    const int message_id = tok.get_message_id();
+    if (message_id != 0) {
+        std::cout << LOG_MQTT << " for token: [" << message_id << "]" << "\n";
+    }
+    std::cout << "\n";
+}
 
-            try {
-                std::cout << "Connecting to the MQTT server..." << std::flush;
-                client_.connect(conn_opts)->wait();
-                std::cout << "OK" << std::endl;
-            }
-            catch (const mqtt::exception& exc) {
-                std::cerr << "\nERROR: Unable to connect to MQTT server: " << exc.what() << std::endl;
-                exit(1);
-            }
-        }
+MQTTCallback::MQTTCallback(mqtt::async_client& cli, mqtt::connect_options& connOpts)
+: n_retry_(0),
+cli_(cli),
+connect_opts_(connOpts),
+sub_listener_("Subscription") {
 
-        void subscribe() {
-            mqtt::token_ptr tok;
-            mqtt::subscribe_options sub_opts;
-            std::cout << "Subscribing to topic '" << TOPIC << "'..." << std::flush;
-            tok = client_.subscribe(TOPIC, 1, sub_opts);
-            tok->wait();
-            std::cout << "OK" << std::endl;
-        }
+}
 
-        void run() {
-            subscribe();
-            while (true) {}
-        }
+MQTTCallback::~MQTTCallback() {
 
-    private:
-        mqtt::async_client client_;
-        mqtt_callback mqtt_cb_;
-};
+}
+
+void MQTTCallback::reconnect() {
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+	try {
+		cli_.connect(connect_opts_, nullptr, *this);
+	}
+	catch (const mqtt::exception& exc) {
+		std::cerr << LOG_MQTT << " Error: " << exc.what() << "\n";
+		exit(1);
+	}
+}
+
+void MQTTCallback::on_success(const mqtt::token& tok) {
+
+}
+
+void MQTTCallback::on_failure(const mqtt::token& tok) {
+	std::cout << LOG_MQTT << " Connection attempt failed" << "\n";
+	if (++n_retry_ > MQTT_N_RETRY_ATTEMPTS) {
+        exit(1);
+    }
+	reconnect();
+}
+
+void MQTTCallback::connected(const std::string& cause) {
+    const char * topic = "/test";
+	std::cout << LOG_MQTT << " Connection success" << "\n\n";
+	std::cout << LOG_MQTT << " Subscribing to topic '" << topic << "' for client " << MQTT_CLIENT_ID << " using QoS " << MQTT_QOS << "\n" << "\nPress Q<Enter> to quit\n" << "\n";
+    cli_.subscribe(topic, MQTT_QOS, nullptr, sub_listener_);
+}
+
+void MQTTCallback::connection_lost(const std::string& cause) {
+    std::cout << "\nConnection lost" << "\n";
+	if (!cause.empty()) {
+        std::cout << "\tcause: " << cause << "\n";
+    }
+    std::cout << LOG_MQTT << "Reconnecting..." << "\n";
+	n_retry_ = 0;
+	reconnect();
+}
+
+void MQTTCallback::message_arrived(mqtt::const_message_ptr msg) {
+	std::cout << LOG_MQTT << " Message arrived" << "\n";
+	std::cout << "\ttopic: '" << msg->get_topic() << "'" << "\n";
+	std::cout << "\tpayload: '" << msg->to_string() << "'\n" << "\n";
+}
+
+void MQTTCallback::delivery_complete(mqtt::delivery_token_ptr token) {
+
+}
+
+Mqtt::Mqtt() {
+
+}
+
+Mqtt::~Mqtt() {
+
+}
+
+void Mqtt::mqtt_subscribe() {
+	mqtt::async_client cli(MQTT_ADDRESS, MQTT_CLIENT_ID);
+
+	mqtt::connect_options connect_opts;
+	connect_opts.set_clean_session(false);
+
+	MQTTCallback cb(cli, connect_opts);
+	cli.set_callback(cb);
+
+	try {
+		std::cout << LOG_MQTT << " Connecting to the MQTT server..." << "\n" << std::flush;
+		cli.connect(connect_opts, nullptr, cb)->wait();
+	}
+	catch (const mqtt::exception& exc) {
+		std::cerr << LOG_MQTT << " ERROR: Unable to connect to MQTT server: '" << MQTT_ADDRESS << "'" << exc << "\n";
+	}
+
+	while(true) {}
+
+	// try {
+	// 	std::cout << "\nDisconnecting from the MQTT server..." << std::flush;
+	// 	cli.disconnect()->wait();
+	// 	std::cout << "OK" << std::endl;
+	// }
+	// catch (const mqtt::exception& exc) {
+	// 	std::cerr << exc << std::endl;
+	// }
+}

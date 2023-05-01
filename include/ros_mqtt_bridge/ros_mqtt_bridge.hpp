@@ -1,37 +1,31 @@
-#ifndef RCL
-#define RCL
+#ifndef ROS_MQTT_BRIDGE
+#define ROS_MQTT_BRIDGE
 
 #include <iostream>
-#include <chrono>
-#include <functional>
-#include <memory>
-#include <string>
 #include <math.h>
 #include <unistd.h>
 #include <signal.h>
 #include <functional>
 
+#include "mqtt/mqtt.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 
-#include "mqtt/mqtt.hpp"
-
 #define LOG_RCL "[RCL]"
 
+using std::placeholders::_1;
 using namespace std::chrono_literals;
 
-class MinimalPublisher : public rclcpp::Node {
-    public :
-        MinimalPublisher() : Node("minimal_publisher"), count(0) {
-            publisher = this->create_publisher<std_msgs::msg::String>("topic", 10);
-            timer = this->create_wall_timer(500ms, std::bind(&MinimalPublisher::timer_callback, this));
-        };
-        void timer_callback();
-    
+class MinimalPublisher : public rclcpp::Node {    
     private :
-        rclcpp::TimerBase::SharedPtr timer;
-        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher;
-        size_t count;
+        rclcpp::TimerBase::SharedPtr m_timer;
+        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_publisher;
+        size_t m_count;
+        Mqtt* m_mqtt_cli;
+    public :
+        MinimalPublisher();
+        virtual ~MinimalPublisher();
+        void timer_callback();
 };
 
 #endif
