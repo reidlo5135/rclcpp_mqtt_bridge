@@ -2,9 +2,12 @@
 #define MQTT
 
 #include <iostream>
-#include <cstring>
 #include <cstdlib>
-#include <csignal>
+#include <string>
+#include <cstring>
+#include <cctype>
+#include <thread>
+#include <chrono>
 
 #include "mqtt/async_client.h"
 
@@ -56,7 +59,7 @@ class mqtt_client {
             mqtt::token_ptr tok;
             mqtt::subscribe_options sub_opts;
             std::cout << "Subscribing to topic '" << "/tester" << "'..." << std::flush;
-            tok = client_.subscribe("/tester", 1, sub_opts);
+            tok = client_.subscribe("/tester", MQTT_QOS, sub_opts);
             tok->wait();
             std::cout << "OK" << std::endl;
         }
