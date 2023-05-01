@@ -1,10 +1,11 @@
-# ROS2-MQTT Client - For ROS2-MQTT connection (rclcpp)
+# Rclcpp-MQTT-Bridge-Client - For ROS2-MQTT connection
 
 ## Document
   - [Environment](#environment)
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
     - [Install Paho MQTT C Library](#install-paho-mqtt-c-library)
+    - [Install Paho MQTT Cpp Library](#install-paho-mqtt-cpp-library)
     - [Colcon Build](#clone--colcon-build)
     - [Run Test](#run-test)
 
@@ -18,13 +19,29 @@
 ## Installation
 
 ### Prerequisites
-- [ROS2 setup](https://index.ros.org/doc/ros2/Installation/) for install rclc -
+- [ROS2 setup](https://index.ros.org/doc/ros2/Installation/) for use rclcpp -
   **INSTALL [ROS2 Foxy-Fitzroy](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html)**
 
 ### Install Paho MQTT C Library
 ```bash
 git clone https://github.com/eclipse/paho.mqtt.c.git
 cd paho.mqtt.c
+cmake -Bbuild -H. -DPAHO_ENABLE_TESTING=OFF -DPAHO_BUILD_STATIC=ON -DPAHO_WITH_SSL=ON -DPAHO_HIGH_PERFORMANCE=ON
+sudo cmake --build build/ --target install
+sudo ldconfig
+cd build
+make
+sudo make install
+```
+
+### Install Paho MQTT Cpp Library
+```bash
+git clone https://github.com/eclipse/paho.mqtt.cpp.git
+cd paho.mqtt.cpp
+cmake -Bbuild -H. -DPAHO_ENABLE_TESTING=OFF -DPAHO_BUILD_STATIC=ON -DPAHO_WITH_SSL=ON -DPAHO_HIGH_PERFORMANCE=ON
+sudo cmake --build build/ --target install
+sudo ldconfig
+cd build
 make
 sudo make install
 ```
