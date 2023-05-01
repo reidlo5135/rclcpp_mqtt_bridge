@@ -19,4 +19,5 @@ void MinimalPublisher::timer_callback() {
     message.data = "Hello World! [" + std::to_string(m_count++) + "]";
     RCLCPP_INFO(this->get_logger(), "%s Publishing : %s", LOG_RCL, message.data.c_str());
     m_publisher->publish(message);
+    // m_mqtt_cli->mqtt_publish("/chatter", std::to_string(message.data));
 }
