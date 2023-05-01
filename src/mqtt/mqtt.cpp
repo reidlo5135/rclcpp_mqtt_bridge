@@ -101,6 +101,10 @@ Mqtt::~Mqtt() {
 
 }
 
+void Mqtt::mqtt_publish(char * topic, char * payload) {
+	std::cout << LOG_MQTT << " publish to " << topic << " with " << payload;
+}
+
 void Mqtt::mqtt_subscribe() {
 	mqtt::async_client cli(MQTT_ADDRESS, MQTT_CLIENT_ID);
 

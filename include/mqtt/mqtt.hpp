@@ -16,6 +16,7 @@
 #define MQTT_CLIENT_ID    "ros_mqtt_bridge"
 #define MQTT_QOS         1
 #define MQTT_N_RETRY_ATTEMPTS 5
+#define MQTT_INIT_TOPIC "ros_message_init"
 
 class MQTTActionListener : public virtual mqtt::iaction_listener {
     private :
@@ -49,6 +50,7 @@ class Mqtt {
 	public :
 		Mqtt();
 		virtual ~Mqtt();
+		void mqtt_publish(char * topic, char * payload);
 		void mqtt_subscribe();
 };
 
