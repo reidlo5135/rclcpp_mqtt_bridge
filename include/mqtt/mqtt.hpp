@@ -18,40 +18,24 @@
 #define MQTT_N_RETRY_ATTEMPTS 5
 #define MQTT_INIT_TOPIC "ros_message_init"
 
-class MQTTActionListener : public virtual mqtt::iaction_listener {
-    private :
-        std::string name_;
-        void on_success(const mqtt::token& tok) override;
-        void on_failure(const mqtt::token& tok) override;
-    public:
-        MQTTActionListener(const std::string& name);
-        virtual ~MQTTActionListener();
-};
-
-class MQTTCallback : public virtual mqtt::callback, public virtual mqtt::iaction_listener {
-	private :
-		int n_retry_;
-		mqtt::async_client& cli_;
-		mqtt::connect_options& connect_opts_;
-		MQTTActionListener sub_listener_;
-		void reconnect();
-		void on_success(const mqtt::token& tok) override;
-		void on_failure(const mqtt::token& tok) override;
-		void connected(const std::string& cause) override;
+class MqttCallback : public virtual mqtt::callback {
+	public :
+		MqttCallback();
+		virtual ~MqttCallback();
 		void connection_lost(const std::string& cause) override;
 		void message_arrived(mqtt::const_message_ptr msg) override;
 		void delivery_complete(mqtt::delivery_token_ptr token) override;
-	public:
-		MQTTCallback(mqtt::async_client& cli, mqtt::connect_options& connect_opts);
-		virtual ~MQTTCallback();
 };
 
 class Mqtt {
+	private :
+		mqtt::async_client cli_;
+		MqttCallback callback_;
 	public :
-		Mqtt();
+		Mqtt(const std::string address, const std::string client_id);
 		virtual ~Mqtt();
-		void mqtt_publish(char * topic, char * payload);
-		void mqtt_subscribe();
+		void mqtt_publish(char * topic, std::string payload);
+		void mqtt_subscribe(char * topic);
 };
 
 #endif

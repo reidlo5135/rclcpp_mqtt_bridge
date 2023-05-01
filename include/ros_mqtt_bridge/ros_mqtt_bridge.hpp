@@ -21,7 +21,7 @@ class MinimalPublisher : public rclcpp::Node {
         rclcpp::TimerBase::SharedPtr m_timer;
         rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_publisher;
         size_t m_count;
-        Mqtt* m_mqtt_cli;
+        Mqtt * mqtt_ptr;
     public :
         MinimalPublisher();
         virtual ~MinimalPublisher();
