@@ -1,11 +1,11 @@
-# Rclcpp-MQTT-Bridge-Client - For ROS2-MQTT connection
+# rclcpp-MQTT bridge client
 
 ## Document
   - [Environment](#environment)
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
     - [Install Paho MQTT C Library](#install-paho-mqtt-c-library)
-    - [Install Paho MQTT Cpp Library](#install-paho-mqtt-cpp-library)
+    - [Install Paho MQTT C++ Library](#install-paho-mqtt-c-library-1)
     - [Colcon Build](#clone--colcon-build)
     - [Run Test](#run-test)
 
@@ -34,7 +34,7 @@ make
 sudo make install
 ```
 
-### Install Paho MQTT Cpp Library
+### Install Paho MQTT C++ Library
 ```bash
 git clone https://github.com/eclipse/paho.mqtt.cpp.git
 cd paho.mqtt.cpp
