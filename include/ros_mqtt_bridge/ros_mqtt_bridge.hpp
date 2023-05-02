@@ -18,12 +18,12 @@ using namespace std::chrono_literals;
 
 class MinimalPublisher : public rclcpp::Node {    
     private :
-        rclcpp::TimerBase::SharedPtr m_timer;
-        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_publisher;
-        size_t m_count;
-        Mqtt * mqtt_ptr;
+        rclcpp::TimerBase::SharedPtr timer_;
+        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+        size_t count_;
+        Mqtt * mqtt_ptr_;
     public :
-        MinimalPublisher();
+        MinimalPublisher(Mqtt * mqtt_ptr);
         virtual ~MinimalPublisher();
         void timer_callback();
 };
