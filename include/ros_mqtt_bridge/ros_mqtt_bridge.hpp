@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <math.h>
+#include <typeinfo>
 #include <unistd.h>
 #include <signal.h>
 #include <functional>
@@ -19,23 +20,16 @@ class RosMqttBridge : public rclcpp::Node {
     private :
         const std::string mqtt_log_;
         Mqtt * mqtt_ptr_;
+        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr std_subscription_;
     public :
         RosMqttBridge(Mqtt * mqtt_ptr);
         virtual ~RosMqttBridge();
-};
 
-template<typename message_type>
-class RosSubscription {
-    private :
-        const std::string mqtt_log_;
-        rclcpp::Node::SharedPtr node_;
-        rclcpp::Subscription::SharedPtr subscription_;
-    public :
-        RosSubscription(rclcpp::Node::SharedPtr node, const std::string& topic_name, size_t queue_size);
-        virtual ~RosSubscription();
-        void subscribe();
+        template<typename message_type>
+        void subscription(const std::shared_ptr<rclcpp::Node> node, const std::string& topic_name, size_t queue_size);
+
+        template<typename message_type>
         void on_message(const typename message_type::SharedPtr message);
 };
-
 
 #endif

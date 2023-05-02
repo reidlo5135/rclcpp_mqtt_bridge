@@ -4,9 +4,11 @@ RosMqttBridge::RosMqttBridge(Mqtt * mqtt_ptr)
 : Node("ros_mqtt_bridge"),
 mqtt_log_(LOG_MQTT),
 mqtt_ptr_(mqtt_ptr) {
+    std::cout << "ros mqtt bridge constructor" << " \n";
     auto node = std::shared_ptr<rclcpp::Node>(this, [](rclcpp::Node*){});
-    RosSubscription<std_msgs::msg::String> test_subscription(node, "/chatter", 10);
-    test_subscription.subscribe();
+    const std::string topic = "/chatter";
+    const int queue_size = 10;
+    subscription<std_msgs::msg::String>(node, topic, queue_size);
 }
 
 RosMqttBridge::~RosMqttBridge() {
@@ -14,24 +16,14 @@ RosMqttBridge::~RosMqttBridge() {
 }
 
 template<typename message_type>
-RosSubscription<message_type>::RosSubscription(rclcpp::Node::SharedPtr node, const std::string& topic_name, size_t queue_size)
-: mqtt_log_(LOG_MQTT),
-node_(node) {
-
+void RosMqttBridge::subscription(const std::shared_ptr<rclcpp::Node> node, const std::string& topic_name, size_t queue_size) {
+    auto callback = std::bind(&RosMqttBridge::on_message<message_type>, this, _1);
+    const char * message_type_name = typeid(message_type).name();
+    RCLCPP_INFO(this->get_logger(), "subscription message type '%s'", message_type_name);
+    std_subscription_ = node->create_subscription<message_type>(topic_name, rclcpp::QoS(rclcpp::KeepLast(queue_size)), callback);
 }
 
 template<typename message_type>
-RosSubscription<message_type>::~RosSubscription() {
-
-}
-
-template<typename message_type>
-void RosSubscription<message_type>::subscribe() {
-    auto callback = std::bind(&RosSubscription::on_message, this, _1);
-    this->subscription_ = node_->create_subscription<message_type>(topic_name_, rclcpp::QoS(rclcpp::KeepLast(queue_size_)), callback);
-}
-
-template<typename message_type>
-void RosSubscription<message_type>::on_message(const typename message_type::SharedPtr message) {
-    std::cout << "on message " << message << "\n";
+void RosMqttBridge::on_message(const typename message_type::SharedPtr message) {
+    RCLCPP_INFO(this->get_logger(), "I heard: '%s'", message->data.c_str());
 }
