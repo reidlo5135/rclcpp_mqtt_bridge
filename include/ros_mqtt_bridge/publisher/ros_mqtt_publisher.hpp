@@ -17,12 +17,13 @@ using namespace std::chrono_literals;
 
 class RosMqttPublisher : public rclcpp::Node {
     private :
+        Mqtt * mqtt_ptr_;
         void timer_callback();
         rclcpp::TimerBase::SharedPtr timer_;
         rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
         size_t count_;
     public :
-        RosMqttPublisher();
+        RosMqttPublisher(Mqtt * mqtt_ptr);
         virtual ~RosMqttPublisher();
 };
 

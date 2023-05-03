@@ -26,7 +26,7 @@ class MqttCallback : public virtual mqtt::callback {
 		void delivery_complete(mqtt::delivery_token_ptr token) override;
 };
 
-class Mqtt {
+struct Mqtt {
 	private :
 		mqtt::async_client cli_;
 		MqttCallback callback_;
