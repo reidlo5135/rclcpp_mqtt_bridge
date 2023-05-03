@@ -26,7 +26,7 @@ class MqttCallback : public virtual mqtt::callback {
 		void delivery_complete(mqtt::delivery_token_ptr token) override;
 };
 
-struct Mqtt {
+class MqttMgr {
 	private :
 		mqtt::async_client cli_;
 		MqttCallback callback_;
@@ -34,8 +34,8 @@ struct Mqtt {
 		const int mqtt_qos_;
 		const int mqtt_is_success_;
 	public :
-		Mqtt(const std::string address, const std::string client_id);
-		virtual ~Mqtt();
+		MqttMgr(const std::string address, const std::string client_id);
+		virtual ~MqttMgr();
 		void mqtt_publish(char * topic, std::string payload);
 		void mqtt_subscribe(char * topic);
 };
