@@ -12,29 +12,20 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "subscription/ros_mqtt_subscription.hpp"
 
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 
-class RosMqttConnectionManager {
+class RclMqttBridge : public rclcpp::Node {
     private :
-        Mqtt * mqtt_ptr_;
+        MqttMgr * mqtt_mgr_ptr_;
+        std::shared_ptr<rclcpp::Node> rcl_node_ptr_;
+        RclMqttSubscription * rcl_mqtt_subscription_ptr_;
+        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr rcl_std_subscription_;
     public :
-        RosMqttConnectionManager(Mqtt * mqtt_ptr);
-        virtual ~RosMqttConnectionManager();
-        void deliver_to_mqtt(char * mqtt_topic, const char * ros_callback_data);
-};
-
-class RosMqttBridge : public rclcpp::Node {
-    private :
-        Mqtt * mqtt_ptr_;
-        RosMqttConnectionManager * ros_subscription_ptr_;
-        std::shared_ptr<rclcpp::Node> node_ptr_;
-        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr std_subscription_;
-    public :
-        RosMqttBridge(Mqtt * mqtt_ptr);
-        virtual ~RosMqttBridge();
-        void sort_create_subscription();
+        RclMqttBridge(MqttMgr * mqtt_ptr);
+        virtual ~RclMqttBridge();
 };
 
 #endif

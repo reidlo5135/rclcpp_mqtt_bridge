@@ -1,6 +1,6 @@
 #include "mqtt/mqtt.hpp"
 
-Mqtt::Mqtt(const std::string address, const std::string client_id)
+MqttMgr::MqttMgr(const std::string address, const std::string client_id)
 : cli_(address, client_id),
 callback_(),
 mqtt_log_(LOG_MQTT),
@@ -17,11 +17,11 @@ mqtt_is_success_(mqtt::SUCCESS) {
 	}
 }
 
-Mqtt::~Mqtt() {
+MqttMgr::~MqttMgr() {
 
 }
 
-void Mqtt::mqtt_publish(char * topic, std::string payload) {
+void MqttMgr::mqtt_publish(char * topic, std::string payload) {
 	try {
 		std::cout << mqtt_log_ << " publish into '" << topic  << "' with {" << payload << "}" <<  '\n';
 		mqtt::message_ptr pub_msg = mqtt::make_message(topic, payload);
@@ -36,7 +36,7 @@ void Mqtt::mqtt_publish(char * topic, std::string payload) {
 	}
 }
 
-void Mqtt::mqtt_subscribe(char * topic) {
+void MqttMgr::mqtt_subscribe(char * topic) {
 	try {
 		std::cout << mqtt_log_ << " subscribe in '" << topic << "' " << '\n';
 		cli_.subscribe(topic, mqtt_qos_);
