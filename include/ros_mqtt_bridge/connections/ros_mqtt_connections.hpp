@@ -25,7 +25,7 @@ namespace ros_mqtt_connections {
 namespace mqtt_topics {
     namespace publisher {
         const char * chatter_topic = "ros_connection_bridge/chatter";
-        const char * odom_topic = "ros_connetion_bridge/odom";
+        const char * odom_topic = "ros_connection_bridge/odom";
     }
     namespace subscription {
         

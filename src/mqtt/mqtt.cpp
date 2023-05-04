@@ -60,8 +60,8 @@ void MqttCallback::connection_lost(const std::string& cause) {
 
 void MqttCallback::message_arrived(mqtt::const_message_ptr msg) {
 	std::cout << mqtt_log_ << " message arrived" << '\n';
-    std::cout << mqtt_log_ << "\ttopic: '" << msg->get_topic() << "'" << '\n';
-    std::cout << mqtt_log_ << "\tpayload: '" << msg->to_string() << "'" << '\n';
+    std::cout << "\ttopic: '" << msg->get_topic() << "'" << '\n';
+    std::cout << "\tpayload: '" << msg->to_string() << "'" << '\n';
 }
 
 void MqttCallback::delivery_complete(mqtt::delivery_token_ptr token) {

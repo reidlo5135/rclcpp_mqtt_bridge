@@ -27,12 +27,25 @@ void RosConnectionSubscription::create_connection_bridge() {
     ros_connections::subscription::ros_std_subscription_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
         ros_topics::subscription::chatter,
         rclcpp::QoS(rclcpp::KeepLast(10)),
-        [this](const std_msgs::msg::String::SharedPtr std_message) {
-            auto callback_data = std_message->data.c_str();
-            RCLCPP_INFO(ros_node_ptr_->get_logger(), "chatter callback : '%s'", callback_data);
-            auto message = std_msgs::msg::String();
-            message.data = callback_data;
-            ros_connections::publisher::ros_std_publisher_->publish(message);
+        [this](const std_msgs::msg::String::SharedPtr callback_std_msgs) {
+            auto callback_data = callback_std_msgs->data.c_str();
+            RCLCPP_INFO(ros_node_ptr_->get_logger(), "std_msgs callback : '%s'", callback_data);
+
+            auto std_message = std_msgs::msg::String();
+            std_message.data = callback_data;
+            ros_connections::publisher::ros_std_publisher_->publish(std_message);
+        }
+    );
+    ros_connections::subscription::ros_odom_subscription_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Odometry>(
+        ros_topics::subscription::odometry,
+        rclcpp::QoS(rclcpp::KeepLast(10)),
+        [this](const nav_msgs::msg::Odometry::SharedPtr callback_odom_msgs) {
+            double position_x = callback_odom_msgs->pose.pose.position.x;
+            RCLCPP_INFO(ros_node_ptr_->get_logger(), "odom_msgs callback : '%e'", position_x);
+
+            auto odom_message = nav_msgs::msg::Odometry();
+            odom_message.pose.pose.position.x = position_x;
+            ros_connections::publisher::ros_odom_publisher_->publish(odom_message);
         }
     );
 }
