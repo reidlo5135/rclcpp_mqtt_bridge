@@ -28,7 +28,7 @@ find_library(PAHO_MQTT_CPP_LIB paho-mqttpp3 PATHS /usr/local/lib)
 add_executable(ros_connection_bridge src/ros_connection_bridge/ros_connection_bridge.cpp)
 ament_target_dependencies(ros_connection_bridge rcl rclcpp std_msgs nav_msgs)
 
-add_executable(ros_mqtt_bridge src/ros_mqtt_bridge/ros_mqtt_bridge.cpp src/ros_mqtt_bridge/subscription/ros_mqtt_subscription.cpp src/mqtt/mqtt.cpp)
+add_executable(ros_mqtt_bridge src/ros_mqtt_bridge/ros_mqtt_bridge.cpp src/mqtt/mqtt.cpp)
 target_link_libraries(ros_mqtt_bridge ${PAHO_MQTT_CPP_LIB} -lpaho-mqtt3as)
 ament_target_dependencies(ros_mqtt_bridge rcl rclcpp std_msgs nav_msgs)
 
