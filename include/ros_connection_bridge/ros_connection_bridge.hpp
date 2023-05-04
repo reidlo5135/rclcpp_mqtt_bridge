@@ -1,33 +1,37 @@
-#ifndef ROS_PUBLIHSER
-#define ROS_PUBLIHSER
+#ifndef ROS_CONNECTION_BRIDGE
+#define ROS_CONNECTION_BRIDGE
 
 #include <iostream>
-#include <math.h>
-#include <typeinfo>
-#include <unistd.h>
-#include <signal.h>
-#include <functional>
-
-#include "mqtt/mqtt.hpp"
-#include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/string.hpp"
-#include "nav_msgs/msg/odometry.hpp"
+#include "ros_connection_bridge/connections/ros_connections.hpp"
 
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 
+class RosConnectionPublisher {
+    private :
+        std::shared_ptr<rclcpp::Node> ros_node_ptr_;
+    public :
+        RosConnectionPublisher(std::shared_ptr<rclcpp::Node> ros_node_ptr);
+        virtual ~RosConnectionPublisher();
+        void create_publishers();
+};
+
+class RosConnectionSubscription {
+    private :
+        std::shared_ptr<rclcpp::Node> ros_node_ptr_;
+    public :
+        RosConnectionSubscription(std::shared_ptr<rclcpp::Node> ros_node_ptr);
+        virtual ~RosConnectionSubscription();
+        void create_connection_bridge();
+};
+
 class RosConnectionBridge : public rclcpp::Node {
     private :
-        MqttMgr * mqtt_ptr_;
-        rclcpp::TimerBase::SharedPtr ros_timer_;
-        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_std_publisher_;
-        rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr ros_odom_publisher_;
-        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_std_subscription_;
-        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_;
-        size_t count_;
-        void ros_timer_callback();
+        std::shared_ptr<rclcpp::Node> ros_node_ptr_;
+        RosConnectionPublisher * ros_connection_publisher_ptr_;
+        RosConnectionSubscription * ros_connection_subscription_ptr_;
     public :
-        RosConnectionBridge(MqttMgr * mqtt_ptr);
+        RosConnectionBridge();
         virtual ~RosConnectionBridge();
 };
 
