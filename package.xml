@@ -4,7 +4,7 @@
   <name>rclcpp_mqtt_client</name>
   <version>1.0.0</version>
   <description>rclcpp_mqtt_client</description>
-  <maintainer email="naru5135@wavem.net">reidlo</maintainer>
+  <maintainer email="naru5135@wavem.net">wavem-reidlo</maintainer>
   <license>Apache 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
