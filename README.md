@@ -57,6 +57,8 @@ source install/setup.bash
 
 ### Run Test
 ```bash
-source rclcpp_mqtt_client/install/setup.bash
+cd ${your ros2 workspace}
+colcon build --packages-select rclcpp_mqtt_client
+source install/setup.bash
 ros2 run rclcpp_mqtt_client ros_mqtt_bridge
 ```
