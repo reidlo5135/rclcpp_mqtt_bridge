@@ -26,23 +26,18 @@ find_package(actionlib_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_library(PAHO_MQTT_CPP_LIB paho-mqttpp3 PATHS /usr/local/lib)
 
-add_executable(ros_mqtt_bridge src/ros_mqtt_bridge/ros_mqtt_bridge.cpp src/ros_mqtt_bridge/subscription/ros_mqtt_subscription.cpp src/mqtt/mqtt.cpp src/main.cpp)
+add_executable(ros_mqtt_bridge src/ros_mqtt_bridge/ros_mqtt_bridge.cpp src/ros_mqtt_bridge/subscription/ros_subscription.cpp src/mqtt/mqtt.cpp src/main.cpp)
 target_link_libraries(ros_mqtt_bridge ${PAHO_MQTT_CPP_LIB} -lpaho-mqtt3as)
 
-add_executable(ros_mqtt_publisher src/ros_mqtt_bridge/publisher/ros_mqtt_publisher.cpp src/mqtt/mqtt.cpp)
-target_link_libraries(ros_mqtt_publisher ${PAHO_MQTT_CPP_LIB} -lpaho-mqtt3as)
-
-# add_executable(ros_mqtt_subscription src/ros_mqtt_bridge/subscription/ros_mqtt_subscription.cpp src/mqtt/mqtt.cpp)
-# target_link_libraries(ros_mqtt_subscription ${PAHO_MQTT_CPP_LIB} -lpaho-mqtt3as)
+add_executable(ros_publisher src/ros_mqtt_bridge/publisher/ros_publisher.cpp src/mqtt/mqtt.cpp)
+target_link_libraries(ros_publisher ${PAHO_MQTT_CPP_LIB} -lpaho-mqtt3as)
 
 ament_target_dependencies(ros_mqtt_bridge rcl rclcpp std_msgs nav_msgs)
-ament_target_dependencies(ros_mqtt_publisher rcl rclcpp std_msgs nav_msgs)
-# ament_target_dependencies(ros_mqtt_subscription rcl rclcpp std_msgs nav_msgs)
+ament_target_dependencies(ros_publisher rcl rclcpp std_msgs nav_msgs)
 
 install(TARGETS
   ros_mqtt_bridge
-  ros_mqtt_publisher
-  # ros_mqtt_subscription
+  ros_publisher
   DESTINATION lib/${PROJECT_NAME}
 )
 

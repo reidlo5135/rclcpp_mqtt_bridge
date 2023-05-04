@@ -15,16 +15,16 @@
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 
-class RclMqttPublisher : public rclcpp::Node {
+class RosPublisher : public rclcpp::Node {
     private :
         MqttMgr * mqtt_ptr_;
-        rclcpp::TimerBase::SharedPtr rcl_timer_;
-        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr rcl_std_publisher_;
+        rclcpp::TimerBase::SharedPtr ros_timer_;
+        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_std_publisher_;
         size_t count_;
         void rcl_timer_callback();
     public :
-        RclMqttPublisher(MqttMgr * mqtt_ptr);
-        virtual ~RclMqttPublisher();
+        RosPublisher(MqttMgr * mqtt_ptr);
+        virtual ~RosPublisher();
 };
 
 #endif

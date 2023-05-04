@@ -1,5 +1,5 @@
-#ifndef ROS_MQTT_SUBSCRIPTION
-#define ROS_MQTT_SUBSCRIPTION
+#ifndef ROS_SUBSCRIPTION
+#define ROS_SUBSCRIPTION
 
 #include <iostream>
 #include <math.h>
@@ -17,14 +17,14 @@
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 
-class RclMqttSubscription {
+class RosSubscription {
     private :
         MqttMgr * mqtt_mgr_ptr_;
-        std::shared_ptr<rclcpp::Node> rcl_node_ptr_;
-        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr rcl_std_subscription_;
+        std::shared_ptr<rclcpp::Node> ros_node_ptr_;
+        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_std_subscription_;
     public :
-        RclMqttSubscription(MqttMgr * mqtt_ptr, rclcpp::Node::SharedPtr rcl_node_ptr_);
-        virtual ~RclMqttSubscription();
+        RosSubscription(MqttMgr * mqtt_ptr, rclcpp::Node::SharedPtr ros_node_ptr_);
+        virtual ~RosSubscription();
         void sort_create_subscription();
 };
 
