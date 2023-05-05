@@ -1,12 +1,26 @@
 #ifndef ROS_CONNECTION_BRIDGE
 #define ROS_CONNECTION_BRIDGE
 
+/**
+ * include cpp header files
+ * @see iostream
+ * @see math.h
+ * @see signal.h
+ * @see functional
+*/
 #include <iostream>
 #include <math.h>
 #include <unistd.h>
 #include <signal.h>
 #include <functional>
 
+/**
+ * include rclcpp header files
+ * @see rclcpp/rclcpp.hpp
+ * @see std_msgs/msg/string.hpp
+ * @see nav_msgs/msg/odemtery.hpp
+ * @see ros_connection_bridge/connections/ros_connections.hpp
+*/
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "nav_msgs/msg/odometry.hpp"
@@ -40,7 +54,7 @@ class RosConnectionSubscription {
     public :
         RosConnectionSubscription(std::shared_ptr<rclcpp::Node> ros_node_ptr);
         virtual ~RosConnectionSubscription();
-        void create_connection_bridge();
+        void create_subscriptions();
 };
 
 /**
@@ -58,6 +72,7 @@ class RosConnectionBridge : public rclcpp::Node {
         virtual ~RosConnectionBridge();
 };
 
+// function for check rclcpp status
 void check_rclcpp();
 
 #endif
