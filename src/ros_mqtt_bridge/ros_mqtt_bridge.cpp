@@ -45,13 +45,28 @@ RosMqttBridge::~RosMqttBridge() {
     delete ros_subscription_ptr_;
 }
 
+void check_rclcpp() {
+    if(rclcpp::ok()) {
+        std::cout << R"(
+     _____   ____   _____ ___    __  __  ____ _______ _______   ____  _____  _____ _____   _____ ______ 
+    |  __ \ / __ \ / ____|__ \  |  \/  |/ __ \__   __|__   __| |  _ \|  __ \|_   _|  __ \ / ____|  ____|
+    | |__) | |  | | (___    ) | | \  / | |  | | | |     | |    | |_) | |__) | | | | |  | | |  __| |__   
+    |  _  /| |  | |\___ \  / /  | |\/| | |  | | | |     | |    |  _ <|  _  /  | | | |  | | | |_ |  __|  
+    | | \ \| |__| |____) |/ /_  | |  | | |__| | | |     | |    | |_) | | \ \ _| |_| |__| | |__| | |____ 
+    |_|  \_\\____/|_____/|____| |_|  |_|\___\_\ |_|     |_|    |____/|_|  \_\_____|_____/ \_____|______|                                                                                                     
+                                                                                                     
+        )" << '\n';
+    } else {
+        std::cerr << "[ros_mqtt_bridge] rclcpp is not ok" << '\n';
+    }
+}
+
 int main(int argc, char** argv) {
     MqttMgr * mqtt_ptr = new MqttMgr(MQTT_ADDRESS, MQTT_CLIENT_ID);
     rclcpp::init(argc, argv);
+    check_rclcpp();
     auto node = std::make_shared<RosMqttBridge>(mqtt_ptr);
-    while(rclcpp::ok()) {
-        rclcpp::spin(node);
-    }
+    rclcpp::spin(node);
     rclcpp::shutdown();
     
     delete mqtt_ptr;
