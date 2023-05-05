@@ -70,6 +70,6 @@ class RosMqttBridge : public rclcpp::Node {
 };
 
 // function for check rclcpp status
-void check_rclcpp();
+void check_rclcpp_status();
 
 #endif

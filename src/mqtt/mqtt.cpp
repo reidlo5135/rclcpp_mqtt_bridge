@@ -24,6 +24,8 @@ MqttCallback::~MqttCallback() {
  * @brief Overrided Function for log error when MQTT connection has been lost
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.01
+ * @param cause const std::string&
+ * @return void
  * @see mqtt::callback
 */
 void MqttCallback::connection_lost(const std::string& cause) {
@@ -34,6 +36,8 @@ void MqttCallback::connection_lost(const std::string& cause) {
  * @brief Overrided Function for log recieved message from MQTT publishers
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.01
+ * @param msg mqtt::const_message_ptr
+ * @return void
  * @see mqtt::callback
  * @see mqtt::const_messaget_ptr
 */
@@ -47,6 +51,8 @@ void MqttCallback::message_arrived(mqtt::const_message_ptr msg) {
  * @brief Overrided Function for log when MQTT devlivery has been completed
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.01
+ * @param token mqtt::delivery_token_ptr
+ * @return void
  * @see mqtt::callback
  * @see mqtt::delivery_token_ptr
 */
@@ -58,8 +64,11 @@ void MqttCallback::delivery_complete(mqtt::delivery_token_ptr token) {
  * @brief Constructor for initialize this class instance with address, client_id & establish MQTT connections & set callback by MqttCallback
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.01
+ * @param address const std::string
+ * @param client_id const std::string
  * @see MqttCallback
  * @see mqtt::connect_options
+ * @see mqtt::exception
 */
 MqttMgr::MqttMgr(const std::string address, const std::string client_id)
 : cli_(address, client_id),
@@ -92,7 +101,11 @@ MqttMgr::~MqttMgr() {
  * @brief Function for MQTT publish into MQTT Broker
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.01
+ * @param topic char *
+ * @param payload std::string
+ * @return void
  * @see mqtt::message_ptr
+ * @see mqtt::exception
 */
 void MqttMgr::mqtt_publish(char * topic, std::string payload) {
 	try {
@@ -113,6 +126,8 @@ void MqttMgr::mqtt_publish(char * topic, std::string payload) {
  * @brief Function for create MQTT subscription from MQTT Broker
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.01
+ * @param topic char *
+ * @see mqtt::exception
 */
 void MqttMgr::mqtt_subscribe(char * topic) {
 	try {
