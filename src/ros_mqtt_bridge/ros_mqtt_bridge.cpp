@@ -1,5 +1,12 @@
 #include "ros_mqtt_bridge/ros_mqtt_bridge.hpp"
 
+/**
+ * @brief Constructor for initialize this class instance & MqttMgr class' pointer & ros_mqtt_bridge rclcpp::Node shared pointer
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see MqttMgr
+ * @see rclcpp::Node
+*/
 RosMqttSubscription::RosMqttSubscription(MqttMgr * mqtt_mgr_ptr, rclcpp::Node::SharedPtr rcl_node_ptr)
 : log_ros_subscription_(LOG_ROS_SUBSCRITPION),
 mqtt_mgr_ptr_(mqtt_mgr_ptr),
@@ -7,10 +14,22 @@ ros_node_ptr_(rcl_node_ptr) {
     
 }
 
+/**
+ * @brief Virtual Destructor for this class
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+*/
 RosMqttSubscription::~RosMqttSubscription() {
 
 }
 
+/**
+ * @brief Function for create & register ros2 subscriptions to ros_mqtt_bridge rclcpp::Node & mqtt publish with ros2 callback data
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see ros_mqtt_connections
+ * @see mqtt_topics
+*/
 void RosMqttSubscription::create_ros_mqtt_bridge() {
     ros_mqtt_connections::subscription::ros_std_subscription_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
         mqtt_topics::publisher::chatter_topic,
@@ -33,6 +52,15 @@ void RosMqttSubscription::create_ros_mqtt_bridge() {
     );
 }
 
+/**
+ * @brief Constructor for initialize this class instance & ros_mqtt_bridge rclcpp::Node shared pointer & invoke this create_ros_mqtt_bridge()
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see std::shared_ptr
+ * @see rclcpp::Node
+ * @see RosMqttSubscription
+ * @see RosMqttSubscription#create_ros_mqtt_bridge()
+*/
 RosMqttBridge::RosMqttBridge(MqttMgr * mqtt_mgr_ptr) 
 : Node("ros_mqtt_bridge"),
 mqtt_mgr_ptr_(mqtt_mgr_ptr) {
@@ -41,10 +69,22 @@ mqtt_mgr_ptr_(mqtt_mgr_ptr) {
     ros_subscription_ptr_->create_ros_mqtt_bridge();
 }
 
+/**
+ * @brief Virtual Destructor for this class & delete RosMqttSubscription class' pointer
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see ros_mqtt_subscription_ptr_
+*/
 RosMqttBridge::~RosMqttBridge() {
     delete ros_subscription_ptr_;
 }
 
+/**
+ * @brief Function for check rclcpp status & init logs
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see rclcpp::ok()
+*/
 void check_rclcpp() {
     if(rclcpp::ok()) {
         std::cout << R"(
@@ -61,6 +101,13 @@ void check_rclcpp() {
     }
 }
 
+/**
+ * @brief Function for initialize this class instance & MqttMgr class & initialize rclcpp & spin ros_mqtt_bridge rclcpp::Node
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see MqttMgr
+ * @see rclcpp
+*/
 int main(int argc, char** argv) {
     MqttMgr * mqtt_ptr = new MqttMgr(MQTT_ADDRESS, MQTT_CLIENT_ID);
     rclcpp::init(argc, argv);

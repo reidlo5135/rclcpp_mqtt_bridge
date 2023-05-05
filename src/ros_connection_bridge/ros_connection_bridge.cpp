@@ -1,29 +1,67 @@
 #include "ros_connection_bridge/ros_connection_bridge.hpp"
 
+/**
+ * @brief Constructor for initialize this class instance & ros_connection_bridge rclcpp::Node shared pointer & invoke this create_publishers()
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see std::shared_ptr
+ * @see rclcpp::Node
+ * @see create_publishers()
+*/
 RosConnectionPublisher::RosConnectionPublisher(std::shared_ptr<rclcpp::Node> ros_node_ptr)
 : ros_node_ptr_(ros_node_ptr) {
     this->create_publishers();
 }
 
+/**
+ * @brief Virtual Destructor for this class
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+*/
 RosConnectionPublisher::~RosConnectionPublisher() {
 
 }
 
+/**
+ * @brief Function for create & register publishers to ros_connection_bridge rclcpp::Node
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see ros_connections
+*/
 void RosConnectionPublisher::create_publishers() {
     ros_connections::publisher::ros_std_publisher_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_topics::publisher::chatter, 10);
     ros_connections::publisher::ros_odom_publisher_ = ros_node_ptr_->create_publisher<nav_msgs::msg::Odometry>(ros_topics::publisher::odometry, 10);
 }
 
+/**
+ * @brief Constructor for initialize this class instance & ros_connection_bridge rclcpp::Node shared pointer & invoke this create_subscriptions()
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see std::shared_ptr
+ * @see rclcpp::Node
+ * @see create_subscriptions()
+*/
 RosConnectionSubscription::RosConnectionSubscription(std::shared_ptr<rclcpp::Node> ros_node_ptr)
 : ros_node_ptr_(ros_node_ptr) {
-    this->create_connection_bridge();
+    this->create_subscriptions();
 }
 
+/**
+ * @brief Virtual Destructor for this class
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+*/
 RosConnectionSubscription::~RosConnectionSubscription() {
 
 }
 
-void RosConnectionSubscription::create_connection_bridge() {
+/**
+ * @brief Function for create & register subscriptions to ros_connection_bridge rclcpp::Node
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see ros_connections
+*/
+void RosConnectionSubscription::create_subscriptions() {
     ros_connections::subscription::ros_std_subscription_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
         ros_topics::subscription::chatter,
         rclcpp::QoS(rclcpp::KeepLast(10)),
@@ -50,6 +88,14 @@ void RosConnectionSubscription::create_connection_bridge() {
     );
 }
 
+/**
+ * @brief Constructor for initialize this class instance & create rclcpp::Node named with ros_connection_bridge & invoke ros_connections classes' constructors
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see rclcpp::Node
+ * @see RosConnectionPublisher
+ * @see RosConnectionSubscription
+*/
 RosConnectionBridge::RosConnectionBridge()
 : Node("ros_connection_bridge") {
     ros_node_ptr_ = std::shared_ptr<rclcpp::Node>(this, [](rclcpp::Node*){});
@@ -57,11 +103,24 @@ RosConnectionBridge::RosConnectionBridge()
     ros_connection_subscription_ptr_ = new RosConnectionSubscription(ros_node_ptr_);
 }
 
+/**
+ * @brief Virtual Destructor for this class & delete RosConnection classes' pointer
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see ros_connection_publisher_ptr_
+ * @see ros_connection_subscription_ptr_
+*/
 RosConnectionBridge::~RosConnectionBridge() {
     delete ros_connection_publisher_ptr_;
     delete ros_connection_subscription_ptr_;
 }
 
+/**
+ * @brief Function for check rclcpp status & init logs
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see rclcpp::ok()
+*/
 void check_rclcpp() {
     if(rclcpp::ok()) {
         std::cout << R"(
@@ -78,6 +137,12 @@ void check_rclcpp() {
     }
 }
 
+/**
+ * @brief Function for initialize rclcpp & spin ros_connection_bridge rclcpp::Node
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.04
+ * @see rclcpp
+*/
 int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
     check_rclcpp();
