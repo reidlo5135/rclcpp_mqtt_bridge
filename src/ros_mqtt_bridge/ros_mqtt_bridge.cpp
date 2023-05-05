@@ -1,3 +1,17 @@
+// Copyright [2023] [wavem-reidlo]
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "ros_mqtt_bridge/ros_mqtt_bridge.hpp"
 
 /**
@@ -37,8 +51,8 @@ void RosMqttSubscription::create_ros_mqtt_bridge() {
     ros_mqtt_connections::subscription::ros_std_subscription_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
         mqtt_topics::publisher::chatter_topic,
         rclcpp::QoS(rclcpp::KeepLast(10)),
-        [this](const std_msgs::msg::String::SharedPtr msg) {
-            const char* callback_data = const_cast<char*>(msg->data.c_str());
+        [this](const std_msgs::msg::String::SharedPtr callback_std_msgs) {
+            const char* callback_data = const_cast<char*>(callback_std_msgs->data.c_str());
             RCLCPP_INFO(ros_node_ptr_->get_logger(), "I heard: '%s'", callback_data);
             this->mqtt_mgr_ptr_->mqtt_publish("/chatter", callback_data);
         }
@@ -47,8 +61,8 @@ void RosMqttSubscription::create_ros_mqtt_bridge() {
     ros_mqtt_connections::subscription::ros_odom_subscription_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Odometry>(
         mqtt_topics::publisher::odom_topic,
         rclcpp::QoS(rclcpp::KeepLast(20)),
-        [this](const nav_msgs::msg::Odometry::SharedPtr odom_message) {
-            auto callback_data = odom_message->pose.pose.position.x;
+        [this](const nav_msgs::msg::Odometry::SharedPtr callback_odom_msgs) {
+            auto callback_data = callback_odom_msgs->pose.pose.position.x;
             RCLCPP_INFO(ros_node_ptr_->get_logger(), "odom callback : '%s'", callback_data);
             this->mqtt_mgr_ptr_->mqtt_publish("/odom", std::to_string(callback_data));
         }
