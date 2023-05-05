@@ -2,6 +2,15 @@
 #define ROS_MQTT_BRIDGE
 
 #include <iostream>
+#include <math.h>
+#include <unistd.h>
+#include <signal.h>
+#include <functional>
+
+#include "mqtt/mqtt.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/string.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 #include "ros_mqtt_bridge/connections/ros_mqtt_connections.hpp"
 
 #define LOG_ROS_SUBSCRITPION "[RosSubscription]"
@@ -29,5 +38,7 @@ class RosMqttBridge : public rclcpp::Node {
         RosMqttBridge(MqttMgr * mqtt_ptr);
         virtual ~RosMqttBridge();
 };
+
+void check_rclcpp();
 
 #endif
