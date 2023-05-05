@@ -56,9 +56,58 @@ source install/setup.bash
 ```
 
 ### Run Test
+Apply rclcpp_mqtt_client into your workspace
 ```bash
 cd ${your ros2 workspace}
 colcon build --packages-select rclcpp_mqtt_client
 source install/setup.bash
+```
+
+Run ros_connection bridge first
+```bash
+ros2 run rclcpp_mqtt_client ros_connection_bridge
+```
+
+Then run ros_mqtt_bridge
+```bash
 ros2 run rclcpp_mqtt_client ros_mqtt_bridge
+```
+
+Check ros2 node
+```bash
+ros2 node list
+ros2 node info /ros_connection_bridge
+ros2 node info /ros_mqtt_bridge
+```
+Run ros2 demo_node_cpp talker
+```bash
+ros2 run demo_node_cpp talker
+```
+
+Try ros2 /chatter topic subscription
+```bash
+ros2 topic echo /ros_connection_bridge/chatter
+
+Hello World: 1
+Hello World: 2
+Hello World: 3
+Hello World: 4
+.
+.
+.
+.
+```
+
+Try MQTT /chatter topic subscription
+```bash
+mosquitto_sub -h localhost -t "/chatter"
+
+Hello World: 1
+Hello World: 2
+Hello World: 3
+Hello World: 4
+.
+.
+.
+.
 ```
