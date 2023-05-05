@@ -115,10 +115,12 @@ void RosConnectionSubscription::create_subscriptions() {
  * @see RosConnectionSubscription
 */
 RosConnectionBridge::RosConnectionBridge()
-: Node("ros_connection_bridge") {
+: Node("ros_connection_bridge"),
+log_ros_(LOG_ROS_CONNECTION_BRIDGE) {
     ros_node_ptr_ = std::shared_ptr<rclcpp::Node>(this, [](rclcpp::Node*){});
     ros_connection_publisher_ptr_ = new RosConnectionPublisher(ros_node_ptr_);
     ros_connection_subscription_ptr_ = new RosConnectionSubscription(ros_node_ptr_);
+    this->check_current_topics_and_types();
 }
 
 /**
@@ -133,6 +135,20 @@ RosConnectionBridge::~RosConnectionBridge() {
     delete ros_connection_subscription_ptr_;
 }
 
+void RosConnectionBridge::check_current_topics_and_types() {
+    auto topic_names_and_types = ros_node_ptr_->get_topic_names_and_types();
+
+    for (const auto& topic_name_and_type : topic_names_and_types) {
+        const std::string& topic_name = topic_name_and_type.first;
+        const std::vector<std::string>& message_types = topic_name_and_type.second;
+
+        std::cout << log_ros_ << " topic registered '" << topic_name << "' with type '";
+        for (const auto& message_type : message_types) {
+            std::cout << message_type << "'" << '\n';
+        }
+    }
+}
+
 /**
  * @brief Function for check rclcpp status & init logs
  * @author reidlo(naru5135@wavem.net)
@@ -143,13 +159,14 @@ RosConnectionBridge::~RosConnectionBridge() {
 void check_rclcpp_status() {
     if(rclcpp::ok()) {
         std::cout << R"(
-     _____   ____   _____ ___     _____ ____  _   _ _   _ ______ _____ _______ _____ ____  _   _   ____  _____  _____ _____   _____ ______ 
-    |  __ \ / __ \ / ____|__ \   / ____/ __ \| \ | | \ | |  ____/ ____|__   __|_   _/ __ \| \ | | |  _ \|  __ \|_   _|  __ \ / ____|  ____|
-    | |__) | |  | | (___    ) | | |   | |  | |  \| |  \| | |__ | |       | |    | || |  | |  \| | | |_) | |__) | | | | |  | | |  __| |__   
-    |  _  /| |  | |\___ \  / /  | |   | |  | | . ` | . ` |  __|| |       | |    | || |  | | . ` | |  _ <|  _  /  | | | |  | | | |_ |  __|  
-    | | \ \| |__| |____) |/ /_  | |___| |__| | |\  | |\  | |___| |____   | |   _| || |__| | |\  | | |_) | | \ \ _| |_| |__| | |__| | |____ 
-    |_|  \_\\____/|_____/|____|  \_____\____/|_| \_|_| \_|______\_____|  |_|  |_____\____/|_| \_| |____/|_|  \_\_____|_____/ \_____|______|
-                                                                                                                                                                                                                                                                                    
+  _____   ____   _____    _____ ____  _   _ _   _ ______ _____ _______ _____ ____  _   _   ____  _____  _____ _____   _____ ______ 
+ |  __ \ / __ \ / ____|  / ____/ __ \| \ | | \ | |  ____/ ____|__   __|_   _/ __ \| \ | | |  _ \|  __ \|_   _|  __ \ / ____|  ____|
+ | |__) | |  | | (___   | |   | |  | |  \| |  \| | |__ | |       | |    | || |  | |  \| | | |_) | |__) | | | | |  | | |  __| |__   
+ |  _  /| |  | |\___ \  | |   | |  | | . ` | . ` |  __|| |       | |    | || |  | | . ` | |  _ <|  _  /  | | | |  | | | |_ |  __|  
+ | | \ \| |__| |____) | | |___| |__| | |\  | |\  | |___| |____   | |   _| || |__| | |\  | | |_) | | \ \ _| |_| |__| | |__| | |____ 
+ |_|  \_\\____/|_____/   \_____\____/|_| \_|_| \_|______\_____|  |_|  |_____\____/|_| \_| |____/|_|  \_\_____|_____/ \_____|______|
+                                                                                                                                   
+                                                                                                                                   
         )" << '\n';
     } else {
         std::cerr << "[ros_connection_bridge] rclcpp is not ok" << '\n';

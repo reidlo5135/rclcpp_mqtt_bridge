@@ -59,7 +59,7 @@ using namespace std::chrono_literals;
 */
 class RosMqttSubscription {
     private :
-        const std::string log_ros_subscription_;
+        const std::string& log_ros_subscription_;
         MqttMgr * mqtt_mgr_ptr_;
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
     public :
