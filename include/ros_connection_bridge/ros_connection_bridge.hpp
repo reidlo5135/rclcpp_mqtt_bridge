@@ -40,6 +40,8 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "ros_connection_bridge/connections/ros_connections.hpp"
 
+#define LOG_ROS_CONNECTION_BRIDGE "[ROS-BRIDGE]"
+
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 
@@ -51,10 +53,10 @@ using namespace std::chrono_literals;
 class RosConnectionPublisher {
     private :
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
+        void create_publishers();
     public :
         RosConnectionPublisher(std::shared_ptr<rclcpp::Node> ros_node_ptr);
         virtual ~RosConnectionPublisher();
-        void create_publishers();
 };
 
 /**
@@ -65,10 +67,10 @@ class RosConnectionPublisher {
 class RosConnectionSubscription {
     private :
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
+        void create_subscriptions();
     public :
         RosConnectionSubscription(std::shared_ptr<rclcpp::Node> ros_node_ptr);
         virtual ~RosConnectionSubscription();
-        void create_subscriptions();
 };
 
 /**
@@ -78,9 +80,11 @@ class RosConnectionSubscription {
 */
 class RosConnectionBridge : public rclcpp::Node {
     private :
+        const std::string& log_ros_;
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
         RosConnectionPublisher * ros_connection_publisher_ptr_;
         RosConnectionSubscription * ros_connection_subscription_ptr_;
+        void check_current_topics_and_types();
     public :
         RosConnectionBridge();
         virtual ~RosConnectionBridge();
