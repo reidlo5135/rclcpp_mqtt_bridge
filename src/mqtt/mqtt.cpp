@@ -1,3 +1,17 @@
+// Copyright [2023] [wavem-reidlo]
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "mqtt/mqtt.hpp"
 
 /**
@@ -117,8 +131,8 @@ void MqttMgr::mqtt_publish(char * topic, std::string payload) {
         if (delivery_token->get_return_code() != mqtt_is_success_) {
             std::cerr << mqtt_log_ << " publishing error : " << delivery_token->get_return_code() << '\n';
         }
-	} catch (const mqtt::exception& ex) {
-		std::cerr << mqtt_log_ << " publishing error : " << ex.what() << '\n';
+	} catch (const mqtt::exception& mqtt_expn) {
+		std::cerr << mqtt_log_ << " publishing error : " << mqtt_expn.what() << '\n';
 	}
 }
 
@@ -133,7 +147,7 @@ void MqttMgr::mqtt_subscribe(char * topic) {
 	try {
 		std::cout << mqtt_log_ << " grant subscription with '" << topic << "' " << '\n';
 		cli_.subscribe(topic, mqtt_qos_);
-	} catch (const mqtt::exception& ex) {
-		std::cerr << mqtt_log_ << " grant subscriptions error : " << ex.what() << '\n';
+	} catch (const mqtt::exception& mqtt_expn) {
+		std::cerr << mqtt_log_ << " grant subscriptions error : " << mqtt_expn.what() << '\n';
 	}
 }
