@@ -4,6 +4,7 @@
  * @brief Constructor for initialize this class instance & ros_connection_bridge rclcpp::Node shared pointer & invoke this create_publishers()
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.04
+ * @param ros_node_ptr std::shared_ptr<rclcpp::Node>
  * @see std::shared_ptr
  * @see rclcpp::Node
  * @see create_publishers()
@@ -26,6 +27,7 @@ RosConnectionPublisher::~RosConnectionPublisher() {
  * @brief Function for create & register publishers to ros_connection_bridge rclcpp::Node
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.04
+ * @return void
  * @see ros_connections
 */
 void RosConnectionPublisher::create_publishers() {
@@ -37,6 +39,7 @@ void RosConnectionPublisher::create_publishers() {
  * @brief Constructor for initialize this class instance & ros_connection_bridge rclcpp::Node shared pointer & invoke this create_subscriptions()
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.04
+ * @param ros_node_ptr std::shared_ptr<rclcpp::Node>
  * @see std::shared_ptr
  * @see rclcpp::Node
  * @see create_subscriptions()
@@ -59,6 +62,7 @@ RosConnectionSubscription::~RosConnectionSubscription() {
  * @brief Function for create & register subscriptions to ros_connection_bridge rclcpp::Node
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.04
+ * @return void
  * @see ros_connections
 */
 void RosConnectionSubscription::create_subscriptions() {
@@ -119,9 +123,10 @@ RosConnectionBridge::~RosConnectionBridge() {
  * @brief Function for check rclcpp status & init logs
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.04
+ * @return void
  * @see rclcpp::ok()
 */
-void check_rclcpp() {
+void check_rclcpp_status() {
     if(rclcpp::ok()) {
         std::cout << R"(
      _____   ____   _____ ___     _____ ____  _   _ _   _ ______ _____ _______ _____ ____  _   _   ____  _____  _____ _____   _____ ______ 
@@ -141,11 +146,16 @@ void check_rclcpp() {
  * @brief Function for initialize rclcpp & spin ros_connection_bridge rclcpp::Node
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.04
+ * @param argc int
+ * @param argv char**
+ * @return int
  * @see rclcpp
+ * @see RosConnectionBridge
+ * @see check_rclcpp_status()
 */
 int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
-    check_rclcpp();
+    check_rclcpp_status();
     rclcpp::spin(std::make_shared<RosConnectionBridge>());
     rclcpp::shutdown();
 
