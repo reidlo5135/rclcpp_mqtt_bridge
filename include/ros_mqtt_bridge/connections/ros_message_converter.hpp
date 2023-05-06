@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS_CONNECTIONS
-#define ROS_CONNECTIONS
+#ifndef ROS_MESSAGE_CONVERTER
+#define ROS_MESSAGE_CONVERTER
 
 /**
  * include cpp header files
@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <functional>
+#include <jsoncpp/json/json.h>
 
 /**
  * include rclcpp header files
@@ -39,37 +40,22 @@
 #include "std_msgs/msg/string.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 
-/**
- * @brief namespace for declare rclcpp shared pointers
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.04
- * @see rclcpp::Publisher
- * @see rclcpp::Subscription
-*/
-namespace ros_connections {
-    namespace publisher {
-        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_std_publisher_ptr_;
-        rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr ros_odom_publisher_ptr_;
+namespace ros_message_converter {
+    namespace ros_std_msgs {
+        class StdMessageConverter {
+            public :
+                StdMessageConverter();
+                virtual ~StdMessageConverter();
+                std::string convert_chatter_to_json(const std_msgs::msg::String::SharedPtr chatter_msgs_ptr);
+        };
     }
-    namespace subscription {
-        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_std_subscription_ptr_;
-        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_ptr_;
-    }
-}
-
-/**
- * @brief namespace for declare ros topics
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.04
-*/
-namespace ros_topics {
-    namespace publisher {
-        const char * chatter = "ros_connection_bridge/chatter";
-        const char * odometry = "ros_connection_bridge/odom";
-    }
-    namespace subscription {
-        const char * chatter = "/chatter";
-        const char * odometry = "/odom";
+    namespace ros_nav_msgs {
+        class NavMessageConverter {
+            public:
+                NavMessageConverter();
+                virtual ~NavMessageConverter();
+                std::string convert_odom_to_json(const nav_msgs::msg::Odometry::SharedPtr odom_msgs_ptr);
+        };
     }
 }
 

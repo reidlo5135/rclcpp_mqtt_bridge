@@ -45,8 +45,8 @@ RosConnectionPublisher::~RosConnectionPublisher() {
  * @see ros_connections
 */
 void RosConnectionPublisher::create_publishers() {
-    ros_connections::publisher::ros_std_publisher_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_topics::publisher::chatter, 10);
-    ros_connections::publisher::ros_odom_publisher_ = ros_node_ptr_->create_publisher<nav_msgs::msg::Odometry>(ros_topics::publisher::odometry, 10);
+    ros_connections::publisher::ros_std_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_topics::publisher::chatter, 10);
+    ros_connections::publisher::ros_odom_publisher_ptr_ = ros_node_ptr_->create_publisher<nav_msgs::msg::Odometry>(ros_topics::publisher::odometry, 10);
 }
 
 /**
@@ -80,18 +80,18 @@ RosConnectionSubscription::~RosConnectionSubscription() {
  * @see ros_connections
 */
 void RosConnectionSubscription::create_subscriptions() {
-    ros_connections::subscription::ros_std_subscription_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
+    ros_connections::subscription::ros_std_subscription_ptr_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
         ros_topics::subscription::chatter,
         rclcpp::QoS(rclcpp::KeepLast(10)),
         [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
-            ros_connections::publisher::ros_std_publisher_->publish(*callback_chatter_data);
+            ros_connections::publisher::ros_std_publisher_ptr_->publish(*callback_chatter_data);
         }
     );
-    ros_connections::subscription::ros_odom_subscription_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Odometry>(
+    ros_connections::subscription::ros_odom_subscription_ptr_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Odometry>(
         ros_topics::subscription::odometry,
         rclcpp::QoS(rclcpp::KeepLast(10)),
         [this](const nav_msgs::msg::Odometry::SharedPtr callback_odom_data) {
-            ros_connections::publisher::ros_odom_publisher_->publish(*callback_odom_data);
+            ros_connections::publisher::ros_odom_publisher_ptr_->publish(*callback_odom_data);
         }
     );
 }

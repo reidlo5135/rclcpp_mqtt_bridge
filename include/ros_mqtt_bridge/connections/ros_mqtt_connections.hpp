@@ -57,8 +57,8 @@ namespace ros_mqtt_connections {
 
     }
     namespace subscription {
-        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_std_subscription_;
-        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_;
+        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_std_subscription_ptr_;
+        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_ptr_;
     }
     namespace topic {
         const char * chatter_topic = "ros_connection_bridge/chatter";

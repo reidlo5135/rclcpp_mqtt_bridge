@@ -27,7 +27,8 @@ RosMqttSubscription::RosMqttSubscription(MqttMgr * mqtt_mgr_ptr, std::shared_ptr
 : log_ros_subscription_(LOG_ROS_SUBSCRITPION),
 mqtt_mgr_ptr_(mqtt_mgr_ptr),
 ros_node_ptr_(ros_node_ptr) {
-    
+    std_msgs_converter_ptr_ = new ros_message_converter::ros_std_msgs::StdMessageConverter();
+    nav_msgs_converter_ptr_ = new ros_message_converter::ros_nav_msgs::NavMessageConverter();
 }
 
 /**
@@ -36,7 +37,8 @@ ros_node_ptr_(ros_node_ptr) {
  * @date 23.05.04
 */
 RosMqttSubscription::~RosMqttSubscription() {
-
+    delete std_msgs_converter_ptr_;
+    delete nav_msgs_converter_ptr_;
 }
 
 /**
@@ -48,50 +50,21 @@ RosMqttSubscription::~RosMqttSubscription() {
  * @see mqtt_topics
 */
 void RosMqttSubscription::create_ros_mqtt_bridge() {
-    ros_mqtt_connections::subscription::ros_std_subscription_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
+    ros_mqtt_connections::subscription::ros_std_subscription_ptr_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
         ros_mqtt_connections::topic::chatter_topic,
         rclcpp::QoS(rclcpp::KeepLast(10)),
         [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
-            const char* callback_data = const_cast<char*>(callback_chatter_data->data.c_str());
-            RCLCPP_INFO(ros_node_ptr_->get_logger(), "chatter I heard: '%s'", callback_data);
-            this->mqtt_mgr_ptr_->mqtt_publish(ros_mqtt_topics::publisher::chatter_topic, callback_data);
+            std::string chatter_json_str = std_msgs_converter_ptr_->convert_chatter_to_json(callback_chatter_data);
+            this->mqtt_mgr_ptr_->mqtt_publish(ros_mqtt_topics::publisher::chatter_topic, chatter_json_str);
         }
     );
 
-    ros_mqtt_connections::subscription::ros_odom_subscription_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Odometry>(
+    ros_mqtt_connections::subscription::ros_odom_subscription_ptr_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Odometry>(
         ros_mqtt_connections::topic::odom_topic,
         rclcpp::QoS(rclcpp::KeepLast(20)),
         [this](const nav_msgs::msg::Odometry::SharedPtr callback_odom_msgs) {
-            Json::Value json_odom;
-            json_odom["header"]["frame_id"] = callback_odom_msgs->header.frame_id;
-            json_odom["header"]["seq"] = callback_odom_msgs->header.stamp.sec;
-            json_odom["header"]["stamp"] = callback_odom_msgs->header.stamp.sec + callback_odom_msgs->header.stamp.nanosec * 1e-9;
-            json_odom["child_frame_id"] = callback_odom_msgs->child_frame_id;
-            json_odom["pose"]["pose"]["position"]["x"] = callback_odom_msgs->pose.pose.position.x;
-            json_odom["pose"]["pose"]["position"]["y"] = callback_odom_msgs->pose.pose.position.y;
-            json_odom["pose"]["pose"]["position"]["z"] = callback_odom_msgs->pose.pose.position.z;
-            json_odom["pose"]["pose"]["orientation"]["x"] = callback_odom_msgs->pose.pose.orientation.x;
-            json_odom["pose"]["pose"]["orientation"]["y"] = callback_odom_msgs->pose.pose.orientation.y;
-            json_odom["pose"]["pose"]["orientation"]["z"] = callback_odom_msgs->pose.pose.orientation.z;
-            json_odom["pose"]["pose"]["orientation"]["w"] = callback_odom_msgs->pose.pose.orientation.w;
-            json_odom["pose"]["covariance"] = Json::arrayValue;
-            for (const auto& cov : callback_odom_msgs->pose.covariance) {
-                json_odom["pose"]["covariance"].append(cov);
-            }
-
-            json_odom["twist"]["twist"]["linear"]["x"] = callback_odom_msgs->twist.twist.linear.x;
-            json_odom["twist"]["twist"]["linear"]["y"] = callback_odom_msgs->twist.twist.linear.y;
-            json_odom["twist"]["twist"]["linear"]["z"] = callback_odom_msgs->twist.twist.linear.z;
-            json_odom["twist"]["twist"]["angular"]["x"] = callback_odom_msgs->twist.twist.angular.x;
-            json_odom["twist"]["twist"]["angular"]["y"] = callback_odom_msgs->twist.twist.angular.y;
-            json_odom["twist"]["twist"]["angular"]["z"] = callback_odom_msgs->twist.twist.angular.z;
-            json_odom["twist"]["covariance"] = Json::arrayValue;
-            for (const auto& cov : callback_odom_msgs->twist.covariance) {
-                json_odom["twist"]["covariance"].append(cov);
-            }
-
-            std::string json_str = Json::StyledWriter().write(json_odom);
-            this->mqtt_mgr_ptr_->mqtt_publish(ros_mqtt_topics::publisher::odom_topic, json_str);
+            std::string odom_json_str = nav_msgs_converter_ptr_->convert_odom_to_json(callback_odom_msgs);
+            this->mqtt_mgr_ptr_->mqtt_publish(ros_mqtt_topics::publisher::odom_topic, odom_json_str);
         }
     );
 }
