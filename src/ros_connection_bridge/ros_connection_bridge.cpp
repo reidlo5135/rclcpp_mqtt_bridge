@@ -83,25 +83,15 @@ void RosConnectionSubscription::create_subscriptions() {
     ros_connections::subscription::ros_std_subscription_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
         ros_topics::subscription::chatter,
         rclcpp::QoS(rclcpp::KeepLast(10)),
-        [this](const std_msgs::msg::String::SharedPtr callback_std_msgs) {
-            auto callback_data = callback_std_msgs->data.c_str();
-            RCLCPP_INFO(ros_node_ptr_->get_logger(), "std_msgs callback : '%s'", callback_data);
-
-            auto std_message = std_msgs::msg::String();
-            std_message.data = callback_data;
-            ros_connections::publisher::ros_std_publisher_->publish(std_message);
+        [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
+            ros_connections::publisher::ros_std_publisher_->publish(*callback_chatter_data);
         }
     );
     ros_connections::subscription::ros_odom_subscription_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Odometry>(
         ros_topics::subscription::odometry,
         rclcpp::QoS(rclcpp::KeepLast(10)),
-        [this](const nav_msgs::msg::Odometry::SharedPtr callback_odom_msgs) {
-            double position_x = callback_odom_msgs->pose.pose.position.x;
-            RCLCPP_INFO(ros_node_ptr_->get_logger(), "odom_msgs callback : '%e'", position_x);
-
-            auto odom_message = nav_msgs::msg::Odometry();
-            odom_message.pose.pose.position.x = position_x;
-            ros_connections::publisher::ros_odom_publisher_->publish(odom_message);
+        [this](const nav_msgs::msg::Odometry::SharedPtr callback_odom_data) {
+            ros_connections::publisher::ros_odom_publisher_->publish(*callback_odom_data);
         }
     );
 }
@@ -159,14 +149,14 @@ void RosConnectionBridge::check_current_topics_and_types() {
 void check_rclcpp_status() {
     if(rclcpp::ok()) {
         std::cout << R"(
-  _____   ____   _____    _____ ____  _   _ _   _ ______ _____ _______ _____ ____  _   _   ____  _____  _____ _____   _____ ______ 
- |  __ \ / __ \ / ____|  / ____/ __ \| \ | | \ | |  ____/ ____|__   __|_   _/ __ \| \ | | |  _ \|  __ \|_   _|  __ \ / ____|  ____|
- | |__) | |  | | (___   | |   | |  | |  \| |  \| | |__ | |       | |    | || |  | |  \| | | |_) | |__) | | | | |  | | |  __| |__   
- |  _  /| |  | |\___ \  | |   | |  | | . ` | . ` |  __|| |       | |    | || |  | | . ` | |  _ <|  _  /  | | | |  | | | |_ |  __|  
- | | \ \| |__| |____) | | |___| |__| | |\  | |\  | |___| |____   | |   _| || |__| | |\  | | |_) | | \ \ _| |_| |__| | |__| | |____ 
- |_|  \_\\____/|_____/   \_____\____/|_| \_|_| \_|______\_____|  |_|  |_____\____/|_| \_| |____/|_|  \_\_____|_____/ \_____|______|
-                                                                                                                                   
-                                                                                                                                   
+  _____   ____   _____ ___     _____ ____  _   _ _   _ ______ _____ _______ _____ ____  _   _   ____  _____  _____ _____   _____ ______ 
+ |  __ \ / __ \ / ____|__ \   / ____/ __ \| \ | | \ | |  ____/ ____|__   __|_   _/ __ \| \ | | |  _ \|  __ \|_   _|  __ \ / ____|  ____|
+ | |__) | |  | | (___    ) | | |   | |  | |  \| |  \| | |__ | |       | |    | || |  | |  \| | | |_) | |__) | | | | |  | | |  __| |__   
+ |  _  /| |  | |\___ \  / /  | |   | |  | | . ` | . ` |  __|| |       | |    | || |  | | . ` | |  _ <|  _  /  | | | |  | | | |_ |  __|  
+ | | \ \| |__| |____) |/ /_  | |___| |__| | |\  | |\  | |___| |____   | |   _| || |__| | |\  | | |_) | | \ \ _| |_| |__| | |__| | |____ 
+ |_|  \_\\____/|_____/|____|  \_____\____/|_| \_|_| \_|______\_____|  |_|  |_____\____/|_| \_| |____/|_|  \_\_____|_____/ \_____|______|
+                                                                                                                                        
+                                                                                                                                        
         )" << '\n';
     } else {
         std::cerr << "[ros_connection_bridge] rclcpp is not ok" << '\n';
@@ -187,8 +177,12 @@ void check_rclcpp_status() {
 int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
     check_rclcpp_status();
-    rclcpp::spin(std::make_shared<RosConnectionBridge>());
-    rclcpp::shutdown();
+    auto node = std::make_shared<RosConnectionBridge>();
+    rclcpp::executors::SingleThreadedExecutor ros_executor;
+    ros_executor.add_node(node);
+    while(rclcpp::ok()) {
+        ros_executor.spin();
+    }
 
     return 0;
 }

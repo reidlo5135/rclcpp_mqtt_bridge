@@ -123,10 +123,9 @@ MqttMgr::~MqttMgr() {
 */
 void MqttMgr::mqtt_publish(char * topic, std::string payload) {
 	try {
-		std::cout << mqtt_log_ << " publish into '" << topic  << "' with {" << payload << "}" <<  '\n';
-		mqtt::message_ptr pub_msg = mqtt::make_message(topic, payload);
-		pub_msg->set_qos(mqtt_qos_);
-		auto delivery_token = cli_.publish(pub_msg);
+		mqtt::message_ptr mqtt_publish_msg = mqtt::make_message(topic, payload);
+		mqtt_publish_msg->set_qos(mqtt_qos_);
+		auto delivery_token = cli_.publish(mqtt_publish_msg);
         delivery_token->wait();
         if (delivery_token->get_return_code() != mqtt_is_success_) {
             std::cerr << mqtt_log_ << " publishing error : " << delivery_token->get_return_code() << '\n';
