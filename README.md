@@ -6,6 +6,7 @@
     - [Prerequisites](#prerequisites)
     - [Install Paho MQTT C Library](#install-paho-mqtt-c-library)
     - [Install Paho MQTT C++ Library](#install-paho-mqtt-c-library-1)
+    - [Install jsoncpp](#install-jsoncpp)
     - [Colcon Build](#clone--colcon-build)
     - [Run Test](#run-test)
 
@@ -42,6 +43,16 @@ cmake -Bbuild -H. -DPAHO_ENABLE_TESTING=OFF -DPAHO_BUILD_STATIC=ON -DPAHO_WITH_S
 sudo cmake --build build/ --target install
 sudo ldconfig
 cd build
+make
+sudo make install
+```
+
+### Install jsoncpp
+```bash
+git clone https://github.com/open-source-parsers/jsoncpp.git
+cd jsoncpp
+mkdir build && cd build
+cmake ..
 make
 sudo make install
 ```

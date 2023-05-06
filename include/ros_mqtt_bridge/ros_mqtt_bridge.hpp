@@ -46,6 +46,7 @@
 #include "std_msgs/msg/string.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "ros_mqtt_bridge/connections/ros_mqtt_connections.hpp"
+#include "ros_mqtt_bridge/connections/ros_message_converter.hpp"
 
 // define common log string
 #define LOG_ROS_SUBSCRITPION "[RosSubscription]"
@@ -63,6 +64,8 @@ class RosMqttSubscription {
         const std::string& log_ros_subscription_;
         MqttMgr * mqtt_mgr_ptr_;
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
+        ros_message_converter::ros_std_msgs::StdMessageConverter * std_msgs_converter_ptr_;
+        ros_message_converter::ros_nav_msgs::NavMessageConverter * nav_msgs_converter_ptr_;
     public :
         RosMqttSubscription(MqttMgr * mqtt_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr_);
         virtual ~RosMqttSubscription();
