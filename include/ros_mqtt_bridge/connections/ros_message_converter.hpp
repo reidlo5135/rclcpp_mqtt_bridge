@@ -40,6 +40,11 @@
 #include "std_msgs/msg/string.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 
+/**
+ * @brief namespace for declare Converter Classes for each message types
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.06
+*/
 namespace ros_message_converter {
     namespace ros_std_msgs {
         class StdMessageConverter {
