@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <functional>
+#include <jsoncpp/json/json.h>
 
 /**
  * include mqtt header file
@@ -63,7 +64,7 @@ class RosMqttSubscription {
         MqttMgr * mqtt_mgr_ptr_;
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
     public :
-        RosMqttSubscription(MqttMgr * mqtt_ptr, rclcpp::Node::SharedPtr ros_node_ptr_);
+        RosMqttSubscription(MqttMgr * mqtt_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr_);
         virtual ~RosMqttSubscription();
         void create_ros_mqtt_bridge();
 };

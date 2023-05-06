@@ -21,20 +21,22 @@ find_package(rcl REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(actionlib_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
-find_library(PAHO_MQTT_CPP_LIB paho-mqttpp3 PATHS /usr/local/lib)
+find_package(jsoncpp REQUIRED)
+find_library(PAHO_MQTT_CPP_LIB paho-mqttpp3 PATHS /usr/local/lib REQUIRED)
 
 add_executable(ros_connection_bridge src/ros_connection_bridge/ros_connection_bridge.cpp)
-ament_target_dependencies(ros_connection_bridge rcl rclcpp std_msgs nav_msgs)
+ament_target_dependencies(ros_connection_bridge rcl rclcpp std_msgs geometry_msgs sensor_msgs nav_msgs)
 
 add_executable(ros_mqtt_bridge src/ros_mqtt_bridge/ros_mqtt_bridge.cpp src/mqtt/mqtt.cpp)
-target_link_libraries(ros_mqtt_bridge ${PAHO_MQTT_CPP_LIB} -lpaho-mqtt3as)
-ament_target_dependencies(ros_mqtt_bridge rcl rclcpp std_msgs nav_msgs)
+target_link_libraries(ros_mqtt_bridge ${PAHO_MQTT_CPP_LIB} -lpaho-mqtt3as jsoncpp)
+ament_target_dependencies(ros_mqtt_bridge rcl rclcpp std_msgs geometry_msgs sensor_msgs nav_msgs)
 
 install(TARGETS
-  ros_mqtt_bridge
   ros_connection_bridge
+  ros_mqtt_bridge
   DESTINATION lib/${PROJECT_NAME}
 )
 

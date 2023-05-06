@@ -49,22 +49,49 @@ RosMqttSubscription::~RosMqttSubscription() {
 */
 void RosMqttSubscription::create_ros_mqtt_bridge() {
     ros_mqtt_connections::subscription::ros_std_subscription_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
-        mqtt_topics::publisher::chatter_topic,
+        ros_mqtt_connections::topic::chatter_topic,
         rclcpp::QoS(rclcpp::KeepLast(10)),
-        [this](const std_msgs::msg::String::SharedPtr callback_std_msgs) {
-            const char* callback_data = const_cast<char*>(callback_std_msgs->data.c_str());
-            RCLCPP_INFO(ros_node_ptr_->get_logger(), "I heard: '%s'", callback_data);
-            this->mqtt_mgr_ptr_->mqtt_publish("/chatter", callback_data);
+        [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
+            const char* callback_data = const_cast<char*>(callback_chatter_data->data.c_str());
+            RCLCPP_INFO(ros_node_ptr_->get_logger(), "chatter I heard: '%s'", callback_data);
+            this->mqtt_mgr_ptr_->mqtt_publish(ros_mqtt_topics::publisher::chatter_topic, callback_data);
         }
     );
 
     ros_mqtt_connections::subscription::ros_odom_subscription_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Odometry>(
-        mqtt_topics::publisher::odom_topic,
+        ros_mqtt_connections::topic::odom_topic,
         rclcpp::QoS(rclcpp::KeepLast(20)),
         [this](const nav_msgs::msg::Odometry::SharedPtr callback_odom_msgs) {
-            auto callback_data = callback_odom_msgs->pose.pose.position.x;
-            RCLCPP_INFO(ros_node_ptr_->get_logger(), "odom callback : '%s'", callback_data);
-            this->mqtt_mgr_ptr_->mqtt_publish("/odom", std::to_string(callback_data));
+            Json::Value json_odom;
+            json_odom["header"]["frame_id"] = callback_odom_msgs->header.frame_id;
+            json_odom["header"]["seq"] = callback_odom_msgs->header.stamp.sec;
+            json_odom["header"]["stamp"] = callback_odom_msgs->header.stamp.sec + callback_odom_msgs->header.stamp.nanosec * 1e-9;
+            json_odom["child_frame_id"] = callback_odom_msgs->child_frame_id;
+            json_odom["pose"]["pose"]["position"]["x"] = callback_odom_msgs->pose.pose.position.x;
+            json_odom["pose"]["pose"]["position"]["y"] = callback_odom_msgs->pose.pose.position.y;
+            json_odom["pose"]["pose"]["position"]["z"] = callback_odom_msgs->pose.pose.position.z;
+            json_odom["pose"]["pose"]["orientation"]["x"] = callback_odom_msgs->pose.pose.orientation.x;
+            json_odom["pose"]["pose"]["orientation"]["y"] = callback_odom_msgs->pose.pose.orientation.y;
+            json_odom["pose"]["pose"]["orientation"]["z"] = callback_odom_msgs->pose.pose.orientation.z;
+            json_odom["pose"]["pose"]["orientation"]["w"] = callback_odom_msgs->pose.pose.orientation.w;
+            json_odom["pose"]["covariance"] = Json::arrayValue;
+            for (const auto& cov : callback_odom_msgs->pose.covariance) {
+                json_odom["pose"]["covariance"].append(cov);
+            }
+
+            json_odom["twist"]["twist"]["linear"]["x"] = callback_odom_msgs->twist.twist.linear.x;
+            json_odom["twist"]["twist"]["linear"]["y"] = callback_odom_msgs->twist.twist.linear.y;
+            json_odom["twist"]["twist"]["linear"]["z"] = callback_odom_msgs->twist.twist.linear.z;
+            json_odom["twist"]["twist"]["angular"]["x"] = callback_odom_msgs->twist.twist.angular.x;
+            json_odom["twist"]["twist"]["angular"]["y"] = callback_odom_msgs->twist.twist.angular.y;
+            json_odom["twist"]["twist"]["angular"]["z"] = callback_odom_msgs->twist.twist.angular.z;
+            json_odom["twist"]["covariance"] = Json::arrayValue;
+            for (const auto& cov : callback_odom_msgs->twist.covariance) {
+                json_odom["twist"]["covariance"].append(cov);
+            }
+
+            std::string json_str = Json::StyledWriter().write(json_odom);
+            this->mqtt_mgr_ptr_->mqtt_publish(ros_mqtt_topics::publisher::odom_topic, json_str);
         }
     );
 }
