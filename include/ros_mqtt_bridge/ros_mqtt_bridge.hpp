@@ -55,22 +55,35 @@
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 
+class RosMqttBridgePublisher {
+    private :
+        const std::string& log_ros_mqtt_bridge_;
+        MqttMgr * mqtt_mgr_ptr_;
+        std::shared_ptr<rclcpp::Node> ros_node_ptr_;
+        ros_message_converter::ros_std_msgs::StdMessageConverter * std_msgs_converter_ptr_;
+        ros_message_converter::ros_nav_msgs::NavMessageConverter * nav_msgs_converter_ptr_;
+        void register_mqtt_subscriptions();
+    public :
+        RosMqttBridgePublisher(MqttMgr * mqtt_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr);
+        virtual ~RosMqttBridgePublisher();
+};
+
 /**
  * @brief Class for establish ros2 mqtt connections
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.04
 */
-class RosMqttSubscription {
+class RosMqttBridgeSubscription {
     private :
+        const std::string& log_ros_mqtt_bridge_;
         MqttMgr * mqtt_mgr_ptr_;
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
         ros_message_converter::ros_std_msgs::StdMessageConverter * std_msgs_converter_ptr_;
         ros_message_converter::ros_nav_msgs::NavMessageConverter * nav_msgs_converter_ptr_;
-        std::map<const char *, const char *> bridge_map_;
         void create_ros_mqtt_bridge();
     public :
-        RosMqttSubscription(MqttMgr * mqtt_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr_);
-        virtual ~RosMqttSubscription();
+        RosMqttBridgeSubscription(MqttMgr * mqtt_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr_);
+        virtual ~RosMqttBridgeSubscription();
 };
 
 /**
@@ -83,7 +96,8 @@ class RosMqttBridge : public rclcpp::Node {
         const std::string& log_ros_mqtt_bridge_;
         MqttMgr * mqtt_mgr_ptr_;
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
-        RosMqttSubscription * ros_subscription_ptr_;
+        RosMqttBridgePublisher * ros_mqtt_bridge_publisher_ptr_;
+        RosMqttBridgeSubscription * ros_mqtt_bridge_subscription_ptr_;
         void check_current_topics_and_types();
     public :
         RosMqttBridge(MqttMgr * mqtt_ptr);

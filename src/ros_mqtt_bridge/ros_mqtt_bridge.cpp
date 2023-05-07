@@ -17,14 +17,56 @@
 /**
  * @brief Constructor for initialize this class instance & MqttMgr class' pointer & ros_mqtt_bridge rclcpp::Node shared pointer
  * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.07
+ * @param mqtt_mgr_ptr MqttMgr *
+ * @param ros_node_ptr std::shared_ptr<rclcpp::Node>
+ * @see MqttMgr
+ * @see rclcpp::Node
+*/
+RosMqttBridgePublisher::RosMqttBridgePublisher(MqttMgr * mqtt_mgr_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr)
+: log_ros_mqtt_bridge_(LOG_ROS_MQTT_BRIDGE),
+mqtt_mgr_ptr_(mqtt_mgr_ptr),
+ros_node_ptr_(ros_node_ptr) {
+    std_msgs_converter_ptr_ = new ros_message_converter::ros_std_msgs::StdMessageConverter();
+    nav_msgs_converter_ptr_ = new ros_message_converter::ros_nav_msgs::NavMessageConverter();
+    this->register_mqtt_subscriptions();
+}
+
+/**
+ * @brief Virtual Destructor for this class
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.07
+*/
+RosMqttBridgePublisher::~RosMqttBridgePublisher() {
+    delete std_msgs_converter_ptr_;
+    delete nav_msgs_converter_ptr_;
+}
+
+/**
+ * @brief Function for register mqtt subscription with ros_mqtt_topics::subscritpions namespace's members;
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.07
+ * @return void
+ * @see MqttMgr
+ * @see ros_mqtt_topics::subscription
+*/
+void RosMqttBridgePublisher::register_mqtt_subscriptions() {
+    mqtt_mgr_ptr_->mqtt_subscribe(ros_mqtt_topics::subscription::chatter_topic);
+    mqtt_mgr_ptr_->mqtt_subscribe(ros_mqtt_topics::subscription::odom_topic);
+}
+
+/**
+ * @brief Constructor for initialize this class instance & MqttMgr class' pointer & ros_mqtt_bridge rclcpp::Node shared pointer
+ * @author reidlo(naru5135@wavem.net)
  * @date 23.05.04
  * @param mqtt_mgr_ptr MqttMgr *
  * @param ros_node_ptr std::shared_ptr<rclcpp::Node>
  * @see MqttMgr
  * @see rclcpp::Node
 */
-RosMqttSubscription::RosMqttSubscription(MqttMgr * mqtt_mgr_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr)
-: mqtt_mgr_ptr_(mqtt_mgr_ptr),
+RosMqttBridgeSubscription::RosMqttBridgeSubscription(MqttMgr * mqtt_mgr_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr)
+: log_ros_mqtt_bridge_(LOG_ROS_MQTT_BRIDGE),
+mqtt_mgr_ptr_(mqtt_mgr_ptr),
 ros_node_ptr_(ros_node_ptr) {
     std_msgs_converter_ptr_ = new ros_message_converter::ros_std_msgs::StdMessageConverter();
     nav_msgs_converter_ptr_ = new ros_message_converter::ros_nav_msgs::NavMessageConverter();
@@ -36,7 +78,7 @@ ros_node_ptr_(ros_node_ptr) {
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.04
 */
-RosMqttSubscription::~RosMqttSubscription() {
+RosMqttBridgeSubscription::~RosMqttBridgeSubscription() {
     delete std_msgs_converter_ptr_;
     delete nav_msgs_converter_ptr_;
 }
@@ -49,8 +91,8 @@ RosMqttSubscription::~RosMqttSubscription() {
  * @see ros_mqtt_connections
  * @see mqtt_topics
 */
-void RosMqttSubscription::create_ros_mqtt_bridge() {
-    ros_mqtt_connections::subscription::ros_std_subscription_ptr_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
+void RosMqttBridgeSubscription::create_ros_mqtt_bridge() {
+    ros_mqtt_connections::subscription::ros_chatter_subscription_ptr_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
         ros_mqtt_connections::topic::chatter_topic,
         rclcpp::QoS(rclcpp::KeepLast(10)),
         [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
@@ -84,7 +126,8 @@ RosMqttBridge::RosMqttBridge(MqttMgr * mqtt_mgr_ptr)
 log_ros_mqtt_bridge_(LOG_ROS_MQTT_BRIDGE),
 mqtt_mgr_ptr_(mqtt_mgr_ptr) {
     ros_node_ptr_ = std::shared_ptr<rclcpp::Node>(this, [](rclcpp::Node*){});
-    ros_subscription_ptr_ = new RosMqttSubscription(mqtt_mgr_ptr_, ros_node_ptr_);
+    ros_mqtt_bridge_publisher_ptr_ = new RosMqttBridgePublisher(mqtt_mgr_ptr_, ros_node_ptr_);
+    ros_mqtt_bridge_subscription_ptr_ = new RosMqttBridgeSubscription(mqtt_mgr_ptr_, ros_node_ptr_);
     this->check_current_topics_and_types();
 }
 
@@ -95,7 +138,8 @@ mqtt_mgr_ptr_(mqtt_mgr_ptr) {
  * @see ros_mqtt_subscription_ptr_
 */
 RosMqttBridge::~RosMqttBridge() {
-    delete ros_subscription_ptr_;
+    delete ros_mqtt_bridge_publisher_ptr_;
+    delete ros_mqtt_bridge_subscription_ptr_;
 }
 
 void RosMqttBridge::check_current_topics_and_types() {

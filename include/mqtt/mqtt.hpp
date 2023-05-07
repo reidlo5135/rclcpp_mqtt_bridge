@@ -51,13 +51,13 @@
 */
 class MqttCallback : public virtual mqtt::callback {
 	private :
-		const std::string mqtt_log_;
+		const std::string log_mqtt_;
 	public :
 		MqttCallback();
 		virtual ~MqttCallback();
-		void connection_lost(const std::string& cause) override;
-		void message_arrived(mqtt::const_message_ptr msg) override;
-		void delivery_complete(mqtt::delivery_token_ptr token) override;
+		void connection_lost(const std::string& mqtt_connection_lost_cause) override;
+		void message_arrived(mqtt::const_message_ptr mqtt_message) override;
+		void delivery_complete(mqtt::delivery_token_ptr mqtt_delivered_token) override;
 };
 
 /**
@@ -69,7 +69,7 @@ class MqttCallback : public virtual mqtt::callback {
 */
 class MqttMgr {
 	private :
-		mqtt::async_client cli_;
+		mqtt::async_client mqtt_async_client_;
 		MqttCallback * mqtt_callback_ptr_;
 		const std::string mqtt_log_;
 		const int mqtt_qos_;

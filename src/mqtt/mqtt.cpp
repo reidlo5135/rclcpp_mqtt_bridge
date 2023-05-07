@@ -21,7 +21,7 @@
  * @see mqtt::callback
 */
 MqttCallback::MqttCallback()
-: mqtt_log_(LOG_MQTT) {
+: log_mqtt_(LOG_MQTT) {
 
 }
 
@@ -42,8 +42,8 @@ MqttCallback::~MqttCallback() {
  * @return void
  * @see mqtt::callback
 */
-void MqttCallback::connection_lost(const std::string& cause) {
-	std::cerr << mqtt_log_ << " connection lost: " << cause << '\n';
+void MqttCallback::connection_lost(const std::string& mqtt_connection_lost_cause) {
+	std::cerr << log_mqtt_ << " connection lost : " << mqtt_connection_lost_cause << '\n';
 }
 
 /**
@@ -56,7 +56,7 @@ void MqttCallback::connection_lost(const std::string& cause) {
  * @see mqtt::const_messaget_ptr
 */
 void MqttCallback::message_arrived(mqtt::const_message_ptr msg) {
-	std::cout << mqtt_log_ << " message arrived" << '\n';
+	std::cout << log_mqtt_ << " message arrived" << '\n';
     std::cout << "\ttopic: '" << msg->get_topic() << "'" << '\n';
     std::cout << "\tpayload: '" << msg->to_string() << "'" << '\n';
 }
@@ -70,8 +70,8 @@ void MqttCallback::message_arrived(mqtt::const_message_ptr msg) {
  * @see mqtt::callback
  * @see mqtt::delivery_token_ptr
 */
-void MqttCallback::delivery_complete(mqtt::delivery_token_ptr token) {
-	std::cout << mqtt_log_ << " delivery complete with [" << token <<  "] \n";
+void MqttCallback::delivery_complete(mqtt::delivery_token_ptr mqtt_delivered_token) {
+	std::cout << log_mqtt_ << " delivery complete with [" << mqtt_delivered_token <<  "] \n";
 }
 
 /**
@@ -84,18 +84,18 @@ void MqttCallback::delivery_complete(mqtt::delivery_token_ptr token) {
  * @see mqtt::connect_options
  * @see mqtt::exception
 */
-MqttMgr::MqttMgr(const std::string address, const std::string client_id)
-: cli_(address, client_id),
+MqttMgr::MqttMgr(const std::string mqtt_address, const std::string mqtt_client_id)
+: mqtt_async_client_(mqtt_address, mqtt_client_id),
 mqtt_log_(LOG_MQTT),
 mqtt_qos_(MQTT_QOS),
 mqtt_is_success_(mqtt::SUCCESS) {
 	try {
 		mqtt_callback_ptr_ = new MqttCallback();
-		mqtt::connect_options connect_opts;
-		connect_opts.set_clean_session(false);
-		cli_.connect(connect_opts)->wait_for(std::chrono::seconds(60));
+		mqtt::connect_options mqtt_connect_opts;
+		mqtt_connect_opts.set_clean_session(false);
+		mqtt_async_client_.connect(mqtt_connect_opts)->wait_for(std::chrono::seconds(60));
 		std::cout << mqtt_log_ << " connection success" << '\n' << '\n';
-		cli_.set_callback(*mqtt_callback_ptr_);
+		mqtt_async_client_.set_callback(*mqtt_callback_ptr_);
 	} catch (const mqtt::exception& mqtt_expn) {
 		std::cerr << mqtt_log_ << " connection error : " << mqtt_expn.what() << '\n';
 	}
@@ -121,11 +121,11 @@ MqttMgr::~MqttMgr() {
  * @see mqtt::message_ptr
  * @see mqtt::exception
 */
-void MqttMgr::mqtt_publish(char * topic, std::string payload) {
+void MqttMgr::mqtt_publish(char * mqtt_topic, std::string mqtt_payload) {
 	try {
-		mqtt::message_ptr mqtt_publish_msg = mqtt::make_message(topic, payload);
+		mqtt::message_ptr mqtt_publish_msg = mqtt::make_message(mqtt_topic, mqtt_payload);
 		mqtt_publish_msg->set_qos(mqtt_qos_);
-		auto delivery_token = cli_.publish(mqtt_publish_msg);
+		auto delivery_token = mqtt_async_client_.publish(mqtt_publish_msg);
         delivery_token->wait();
         if (delivery_token->get_return_code() != mqtt_is_success_) {
             std::cerr << mqtt_log_ << " publishing error : " << delivery_token->get_return_code() << '\n';
@@ -142,10 +142,10 @@ void MqttMgr::mqtt_publish(char * topic, std::string payload) {
  * @param topic char *
  * @see mqtt::exception
 */
-void MqttMgr::mqtt_subscribe(char * topic) {
+void MqttMgr::mqtt_subscribe(char * mqtt_topic) {
 	try {
-		std::cout << mqtt_log_ << " grant subscription with '" << topic << "' " << '\n';
-		cli_.subscribe(topic, mqtt_qos_);
+		std::cout << mqtt_log_ << " grant subscription with '" << mqtt_topic << "' " << '\n';
+		mqtt_async_client_.subscribe(mqtt_topic, mqtt_qos_);
 	} catch (const mqtt::exception& mqtt_expn) {
 		std::cerr << mqtt_log_ << " grant subscriptions error : " << mqtt_expn.what() << '\n';
 	}
