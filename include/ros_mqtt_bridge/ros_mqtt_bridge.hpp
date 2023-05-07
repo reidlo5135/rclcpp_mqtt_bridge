@@ -67,6 +67,7 @@ class RosMqttBridgePublisher {
         RosMqttBridgePublisher();
         RosMqttBridgePublisher(MqttMgr * mqtt_mgr_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr);
         virtual ~RosMqttBridgePublisher();
+        void create_ros_mqtt_bridge(mqtt::const_message_ptr mqtt_message);
 };
 
 /**

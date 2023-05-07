@@ -61,11 +61,15 @@ void RosMqttBridgePublisher::register_mqtt_subscriptions() {
 }
 
 void MqttCallback::message_arrived(mqtt::const_message_ptr mqtt_message) {
-	std::cout << log_mqtt_ << " message arrived" << '\n';
+    RosMqttBridgePublisher * ros_mqtt_bridge_publisher = new RosMqttBridgePublisher();
+    ros_mqtt_bridge_publisher->create_ros_mqtt_bridge(mqtt_message);
+    delete ros_mqtt_bridge_publisher;
+}
+
+void RosMqttBridgePublisher::create_ros_mqtt_bridge(mqtt::const_message_ptr mqtt_message) {
+    std::cout << log_ros_mqtt_bridge_ << " message arrived" << '\n';
     std::cout << "\ttopic: '" << mqtt_message->get_topic() << "'" << '\n';
     std::cout << "\tpayload: '" << mqtt_message->to_string() << "'" << '\n';
-
-    RosMqttBridgePublisher * ros_mqtt_bridge_publisher = new RosMqttBridgePublisher();
 }
 
 /**
