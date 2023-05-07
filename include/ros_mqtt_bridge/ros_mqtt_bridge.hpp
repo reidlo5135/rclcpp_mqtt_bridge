@@ -64,7 +64,8 @@ class RosMqttBridgePublisher {
         ros_message_converter::ros_nav_msgs::NavMessageConverter * nav_msgs_converter_ptr_;
         void register_mqtt_subscriptions();
     public :
-        RosMqttBridgePublisher(MqttMgr * mqtt_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr);
+        RosMqttBridgePublisher();
+        RosMqttBridgePublisher(MqttMgr * mqtt_mgr_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr);
         virtual ~RosMqttBridgePublisher();
 };
 
@@ -82,7 +83,7 @@ class RosMqttBridgeSubscription {
         ros_message_converter::ros_nav_msgs::NavMessageConverter * nav_msgs_converter_ptr_;
         void create_ros_mqtt_bridge();
     public :
-        RosMqttBridgeSubscription(MqttMgr * mqtt_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr_);
+        RosMqttBridgeSubscription(MqttMgr * mqtt_mgr_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr_);
         virtual ~RosMqttBridgeSubscription();
 };
 
@@ -100,7 +101,7 @@ class RosMqttBridge : public rclcpp::Node {
         RosMqttBridgeSubscription * ros_mqtt_bridge_subscription_ptr_;
         void check_current_topics_and_types();
     public :
-        RosMqttBridge(MqttMgr * mqtt_ptr);
+        RosMqttBridge(MqttMgr * mqtt_mgr_ptr);
         virtual ~RosMqttBridge();
 };
 

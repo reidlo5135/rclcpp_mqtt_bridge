@@ -31,6 +31,7 @@
  * include mqtt async_client.h in paho.mqtt.cpp
  * @see /usr/local/include/mqtt
 */
+#include "mqtt/client.h"
 #include "mqtt/async_client.h"
 
 // define mqtt log
@@ -69,7 +70,6 @@ class MqttCallback : public virtual mqtt::callback {
 */
 class MqttMgr {
 	private :
-		mqtt::async_client mqtt_async_client_;
 		MqttCallback * mqtt_callback_ptr_;
 		const std::string mqtt_log_;
 		const int mqtt_qos_;
@@ -77,6 +77,7 @@ class MqttMgr {
 	public :
 		MqttMgr(const std::string address, const std::string client_id);
 		virtual ~MqttMgr();
+		mqtt::async_client mqtt_async_client_;
 		void mqtt_publish(char * topic, std::string payload);
 		void mqtt_subscribe(char * topic);
 };
