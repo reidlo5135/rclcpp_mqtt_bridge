@@ -14,6 +14,11 @@
 
 #include "ros_mqtt_bridge/ros_mqtt_bridge.hpp"
 
+RosMqttBridgePublisher::RosMqttBridgePublisher()
+: log_ros_mqtt_bridge_(LOG_ROS_MQTT_BRIDGE) {
+
+}
+
 /**
  * @brief Constructor for initialize this class instance & MqttMgr class' pointer & ros_mqtt_bridge rclcpp::Node shared pointer
  * @author reidlo(naru5135@wavem.net)
@@ -53,6 +58,14 @@ RosMqttBridgePublisher::~RosMqttBridgePublisher() {
 void RosMqttBridgePublisher::register_mqtt_subscriptions() {
     mqtt_mgr_ptr_->mqtt_subscribe(ros_mqtt_topics::subscription::chatter_topic);
     mqtt_mgr_ptr_->mqtt_subscribe(ros_mqtt_topics::subscription::odom_topic);
+}
+
+void MqttCallback::message_arrived(mqtt::const_message_ptr mqtt_message) {
+	std::cout << log_mqtt_ << " message arrived" << '\n';
+    std::cout << "\ttopic: '" << mqtt_message->get_topic() << "'" << '\n';
+    std::cout << "\tpayload: '" << mqtt_message->to_string() << "'" << '\n';
+
+    RosMqttBridgePublisher * ros_mqtt_bridge_publisher = new RosMqttBridgePublisher();
 }
 
 /**

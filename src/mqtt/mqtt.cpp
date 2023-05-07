@@ -55,11 +55,11 @@ void MqttCallback::connection_lost(const std::string& mqtt_connection_lost_cause
  * @see mqtt::callback
  * @see mqtt::const_messaget_ptr
 */
-void MqttCallback::message_arrived(mqtt::const_message_ptr msg) {
-	std::cout << log_mqtt_ << " message arrived" << '\n';
-    std::cout << "\ttopic: '" << msg->get_topic() << "'" << '\n';
-    std::cout << "\tpayload: '" << msg->to_string() << "'" << '\n';
-}
+// void MqttCallback::message_arrived(mqtt::const_message_ptr mqtt_message) {
+// 	std::cout << log_mqtt_ << " message arrived" << '\n';
+//     std::cout << "\ttopic: '" << mqtt_message->get_topic() << "'" << '\n';
+//     std::cout << "\tpayload: '" << mqtt_message->to_string() << "'" << '\n';
+// }
 
 /**
  * @brief Overrided Function for log when MQTT devlivery has been completed
