@@ -24,11 +24,11 @@
  * @see rclcpp::Node
 */
 RosMqttSubscription::RosMqttSubscription(MqttMgr * mqtt_mgr_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr)
-: log_ros_subscription_(LOG_ROS_SUBSCRITPION),
-mqtt_mgr_ptr_(mqtt_mgr_ptr),
+: mqtt_mgr_ptr_(mqtt_mgr_ptr),
 ros_node_ptr_(ros_node_ptr) {
     std_msgs_converter_ptr_ = new ros_message_converter::ros_std_msgs::StdMessageConverter();
     nav_msgs_converter_ptr_ = new ros_message_converter::ros_nav_msgs::NavMessageConverter();
+    this->create_ros_mqtt_bridge();
 }
 
 /**
@@ -81,10 +81,11 @@ void RosMqttSubscription::create_ros_mqtt_bridge() {
 */
 RosMqttBridge::RosMqttBridge(MqttMgr * mqtt_mgr_ptr) 
 : Node("ros_mqtt_bridge"),
+log_ros_mqtt_bridge_(LOG_ROS_MQTT_BRIDGE),
 mqtt_mgr_ptr_(mqtt_mgr_ptr) {
     ros_node_ptr_ = std::shared_ptr<rclcpp::Node>(this, [](rclcpp::Node*){});
     ros_subscription_ptr_ = new RosMqttSubscription(mqtt_mgr_ptr_, ros_node_ptr_);
-    ros_subscription_ptr_->create_ros_mqtt_bridge();
+    this->check_current_topics_and_types();
 }
 
 /**
@@ -95,6 +96,20 @@ mqtt_mgr_ptr_(mqtt_mgr_ptr) {
 */
 RosMqttBridge::~RosMqttBridge() {
     delete ros_subscription_ptr_;
+}
+
+void RosMqttBridge::check_current_topics_and_types() {
+    auto topic_names_and_types = ros_node_ptr_->get_topic_names_and_types();
+
+    for (const auto& topic_name_and_type : topic_names_and_types) {
+        const std::string& topic_name = topic_name_and_type.first;
+        const std::vector<std::string>& message_types = topic_name_and_type.second;
+
+        std::cout << log_ros_mqtt_bridge_ << " topic registered '" << topic_name << "' with type '";
+        for (const auto& message_type : message_types) {
+            std::cout << message_type << "'" << '\n';
+        }
+    }
 }
 
 /**
@@ -137,8 +152,11 @@ int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
     check_rclcpp_status();
     auto node = std::make_shared<RosMqttBridge>(mqtt_ptr);
-    rclcpp::spin(node);
-    rclcpp::shutdown();
+    rclcpp::executors::SingleThreadedExecutor ros_executor;
+    ros_executor.add_node(node);
+    while(rclcpp::ok()) {
+        ros_executor.spin();
+    }
     
     delete mqtt_ptr;
     return 0;
