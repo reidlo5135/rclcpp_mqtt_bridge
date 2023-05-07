@@ -55,6 +55,15 @@
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 
+class RosMqttPublisher {
+    private :
+        MqttMgr * mqtt_mgr_ptr_;
+        std::shared_ptr<rclcpp::Node> ros_node_ptr_;
+    public :
+        RosMqttPublisher(MqttMgr * mqtt_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr);
+        virtual ~RosMqttPublisher();
+};
+
 /**
  * @brief Class for establish ros2 mqtt connections
  * @author reidlo(naru5135@wavem.net)
@@ -66,7 +75,6 @@ class RosMqttSubscription {
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
         ros_message_converter::ros_std_msgs::StdMessageConverter * std_msgs_converter_ptr_;
         ros_message_converter::ros_nav_msgs::NavMessageConverter * nav_msgs_converter_ptr_;
-        std::map<const char *, const char *> bridge_map_;
         void create_ros_mqtt_bridge();
     public :
         RosMqttSubscription(MqttMgr * mqtt_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr_);

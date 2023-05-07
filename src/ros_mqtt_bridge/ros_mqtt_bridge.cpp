@@ -17,6 +17,25 @@
 /**
  * @brief Constructor for initialize this class instance & MqttMgr class' pointer & ros_mqtt_bridge rclcpp::Node shared pointer
  * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.07
+ * @param mqtt_mgr_ptr MqttMgr *
+ * @param ros_node_ptr std::shared_ptr<rclcpp::Node>
+ * @see MqttMgr
+ * @see rclcpp::Node
+*/
+RosMqttPublisher::RosMqttPublisher(MqttMgr * mqtt_mgr_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr) 
+: mqtt_mgr_ptr_(mqtt_mgr_ptr),
+ros_node_ptr_(ros_node_ptr) {
+
+}
+
+RosMqttPublisher::~RosMqttPublisher() {
+
+}
+
+/**
+ * @brief Constructor for initialize this class instance & MqttMgr class' pointer & ros_mqtt_bridge rclcpp::Node shared pointer
+ * @author reidlo(naru5135@wavem.net)
  * @date 23.05.04
  * @param mqtt_mgr_ptr MqttMgr *
  * @param ros_node_ptr std::shared_ptr<rclcpp::Node>
