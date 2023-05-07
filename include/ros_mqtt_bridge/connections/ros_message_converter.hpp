@@ -52,6 +52,7 @@ namespace ros_message_converter {
                 StdMessageConverter();
                 virtual ~StdMessageConverter();
                 std::string convert_chatter_to_json(const std_msgs::msg::String::SharedPtr chatter_msgs_ptr);
+                std_msgs::msg::String::SharedPtr convert_json_to_chatter(Json::Value received_json);
         };
     }
     namespace ros_nav_msgs {

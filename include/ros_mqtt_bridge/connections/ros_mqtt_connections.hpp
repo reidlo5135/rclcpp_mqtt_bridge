@@ -54,10 +54,10 @@
 */
 namespace ros_mqtt_connections {
     namespace publisher {
-
+        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_chatter_publisher_ptr_;
     }
     namespace subscription {
-        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_std_subscription_ptr_;
+        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_ptr_;
     }
     namespace topic {
@@ -78,7 +78,8 @@ namespace ros_mqtt_topics {
         char * odom_topic = "/odom";
     }
     namespace subscription {
-        
+        char * chatter_topic = "/chatter";
+        char * odom_topic = "/odom";
     }
 }
 
