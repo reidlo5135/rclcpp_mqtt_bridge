@@ -40,7 +40,7 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "ros_connection_bridge/connections/ros_connections.hpp"
 
-#define LOG_ROS_CONNECTION_BRIDGE "[ROS-BRIDGE]"
+#define LOG_ROS_CONNECTION_BRIDGE "[ROS-CONNECTION-BRIDGE]"
 
 using std::placeholders::_1;
 using namespace std::chrono_literals;

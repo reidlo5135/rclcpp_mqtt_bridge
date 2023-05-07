@@ -23,6 +23,7 @@
  * @see functional
 */
 #include <iostream>
+#include <map>
 #include <math.h>
 #include <unistd.h>
 #include <signal.h>
@@ -49,7 +50,7 @@
 #include "ros_mqtt_bridge/connections/ros_message_converter.hpp"
 
 // define common log string
-#define LOG_ROS_SUBSCRITPION "[RosSubscription]"
+#define LOG_ROS_MQTT_BRIDGE "[ROS-MQTT-BRIDGE]"
 
 using std::placeholders::_1;
 using namespace std::chrono_literals;
@@ -61,15 +62,15 @@ using namespace std::chrono_literals;
 */
 class RosMqttSubscription {
     private :
-        const std::string& log_ros_subscription_;
         MqttMgr * mqtt_mgr_ptr_;
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
         ros_message_converter::ros_std_msgs::StdMessageConverter * std_msgs_converter_ptr_;
         ros_message_converter::ros_nav_msgs::NavMessageConverter * nav_msgs_converter_ptr_;
+        std::map<const char *, const char *> bridge_map_;
+        void create_ros_mqtt_bridge();
     public :
         RosMqttSubscription(MqttMgr * mqtt_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr_);
         virtual ~RosMqttSubscription();
-        void create_ros_mqtt_bridge();
 };
 
 /**
@@ -79,9 +80,11 @@ class RosMqttSubscription {
 */
 class RosMqttBridge : public rclcpp::Node {
     private :
+        const std::string& log_ros_mqtt_bridge_;
         MqttMgr * mqtt_mgr_ptr_;
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
         RosMqttSubscription * ros_subscription_ptr_;
+        void check_current_topics_and_types();
     public :
         RosMqttBridge(MqttMgr * mqtt_ptr);
         virtual ~RosMqttBridge();
