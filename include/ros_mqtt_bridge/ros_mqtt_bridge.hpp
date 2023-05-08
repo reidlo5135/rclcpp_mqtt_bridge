@@ -64,10 +64,8 @@ class RosMqttBridgePublisher {
         ros_message_converter::ros_nav_msgs::NavMessageConverter * nav_msgs_converter_ptr_;
         void register_mqtt_subscriptions();
     public :
-        RosMqttBridgePublisher();
         RosMqttBridgePublisher(MqttMgr * mqtt_mgr_ptr, std::shared_ptr<rclcpp::Node> ros_node_ptr);
         virtual ~RosMqttBridgePublisher();
-        void create_ros_mqtt_bridge(mqtt::const_message_ptr mqtt_message);
 };
 
 /**

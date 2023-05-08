@@ -31,7 +31,6 @@
  * include mqtt async_client.h in paho.mqtt.cpp
  * @see /usr/local/include/mqtt
 */
-#include "mqtt/client.h"
 #include "mqtt/async_client.h"
 
 // define mqtt log

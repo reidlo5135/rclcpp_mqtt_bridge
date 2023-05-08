@@ -14,11 +14,6 @@
 
 #include "ros_mqtt_bridge/ros_mqtt_bridge.hpp"
 
-RosMqttBridgePublisher::RosMqttBridgePublisher()
-: log_ros_mqtt_bridge_(LOG_ROS_MQTT_BRIDGE) {
-
-}
-
 /**
  * @brief Constructor for initialize this class instance & MqttMgr class' pointer & ros_mqtt_bridge rclcpp::Node shared pointer
  * @author reidlo(naru5135@wavem.net)
@@ -58,18 +53,6 @@ RosMqttBridgePublisher::~RosMqttBridgePublisher() {
 void RosMqttBridgePublisher::register_mqtt_subscriptions() {
     mqtt_mgr_ptr_->mqtt_subscribe(ros_mqtt_topics::subscription::chatter_topic);
     mqtt_mgr_ptr_->mqtt_subscribe(ros_mqtt_topics::subscription::odom_topic);
-}
-
-void MqttCallback::message_arrived(mqtt::const_message_ptr mqtt_message) {
-    RosMqttBridgePublisher * ros_mqtt_bridge_publisher = new RosMqttBridgePublisher();
-    ros_mqtt_bridge_publisher->create_ros_mqtt_bridge(mqtt_message);
-    delete ros_mqtt_bridge_publisher;
-}
-
-void RosMqttBridgePublisher::create_ros_mqtt_bridge(mqtt::const_message_ptr mqtt_message) {
-    std::cout << log_ros_mqtt_bridge_ << " message arrived" << '\n';
-    std::cout << "\ttopic: '" << mqtt_message->get_topic() << "'" << '\n';
-    std::cout << "\tpayload: '" << mqtt_message->to_string() << "'" << '\n';
 }
 
 /**
@@ -213,11 +196,8 @@ int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
     check_rclcpp_status();
     auto node = std::make_shared<RosMqttBridge>(mqtt_ptr);
-    rclcpp::executors::SingleThreadedExecutor ros_executor;
-    ros_executor.add_node(node);
-    while(rclcpp::ok()) {
-        ros_executor.spin();
-    }
+    rclcpp::spin(node);
+    rclcpp::shutdown();
     
     delete mqtt_ptr;
     return 0;
