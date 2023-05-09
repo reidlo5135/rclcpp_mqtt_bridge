@@ -1,4 +1,4 @@
-# rclcpp-MQTT bridge client
+# rclcpp-mqtt bridge client
 
 ## Document
   - [Environment](#environment)
