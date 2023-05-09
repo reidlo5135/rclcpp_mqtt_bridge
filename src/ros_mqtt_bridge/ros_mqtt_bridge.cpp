@@ -233,7 +233,7 @@ void RosMqttConnectionManager::create_ros_subscriptions() {
         ros_topics::from_connection::tf_topic,
         rclcpp::QoS(rclcpp::KeepLast(10)),
         [this](const tf2_msgs::msg::TFMessage::SharedPtr callback_tf_data) {
-            std::string tf_json_str = tf2_msgs_converter_ptr_->convert_tf2_to_json(callback_tf_data);
+            std::string tf_json_str = tf2_msgs_converter_ptr_->convert_tf_to_json(callback_tf_data);
             mqtt_publish(mqtt_topics::publisher::tf_topic, tf_json_str);
         }
     );
