@@ -38,7 +38,10 @@
 */
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
+#include "geometry_msgs/msg/twist.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "tf2_msgs/msg/tf_message.hpp"
 
 /**
  * @brief namespace for declare Converter Classes for each message types
@@ -55,12 +58,35 @@ namespace ros_message_converter {
                 std_msgs::msg::String::SharedPtr convert_json_to_chatter(Json::Value received_json);
         };
     }
+    namespace ros_geometry_msgs {
+        class GeometryMessageConverter {
+            public :
+                GeometryMessageConverter();
+                virtual ~GeometryMessageConverter();
+        };
+    }
+    namespace ros_sensor_msgs {
+        class SensorMessageConverter {
+            public :
+                SensorMessageConverter();
+                virtual ~SensorMessageConverter();
+                std::string convert_scan_to_json(const sensor_msgs::msg::LaserScan::SharedPtr scan_msgs_ptr);
+        };
+    }
     namespace ros_nav_msgs {
         class NavMessageConverter {
             public:
                 NavMessageConverter();
                 virtual ~NavMessageConverter();
                 std::string convert_odom_to_json(const nav_msgs::msg::Odometry::SharedPtr odom_msgs_ptr);
+        };
+    }
+    namespace ros_tf2_msgs {
+        class Tf2MessageConverter {
+            public :
+                Tf2MessageConverter();
+                virtual ~Tf2MessageConverter();
+                std::string convert_tf2_to_json(const tf2_msgs::msg::TFMessage::SharedPtr tf2_msgs_ptr);
         };
     }
 }
