@@ -75,6 +75,8 @@ class RosMqttConnectionManager : public virtual mqtt::callback {
         const int mqtt_qos_;
 		const int mqtt_is_success_;
         void mqtt_connect();
+        void grant_mqtt_subscriptions();
+        void publish_to_ros(std::string& mqtt_topic, std::string& mqtt_payload);
         void connection_lost(const std::string& mqtt_connection_lost_cause) override;
 		void message_arrived(mqtt::const_message_ptr mqtt_message) override;
 		void delivery_complete(mqtt::delivery_token_ptr mqtt_delivered_token) override;

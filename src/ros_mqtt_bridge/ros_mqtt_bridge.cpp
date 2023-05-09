@@ -29,7 +29,7 @@ mqtt_async_client_(MQTT_ADDRESS, MQTT_CLIENT_ID),
 mqtt_qos_(MQTT_QOS),
 mqtt_is_success_(mqtt::SUCCESS) {
     this->mqtt_connect();
-    this->mqtt_subscribe(ros_mqtt_topics::subscription::chatter_topic);
+    this->grant_mqtt_subscriptions();
     this->create_ros_bridge();
 
     std_msgs_converter_ptr_ = new ros_message_converter::ros_std_msgs::StdMessageConverter();
@@ -64,11 +64,47 @@ void RosMqttConnectionManager::mqtt_connect() {
             std::cout << log_ros_mqtt_bridge_ << " connection success" << '\n';
             mqtt_async_client_.set_callback(*this);
         } else {
-            std::cout << log_ros_mqtt_bridge_ << " connection failed... started reconnec" << '\n';
+            std::cout << log_ros_mqtt_bridge_ << " connection failed... started reconnect" << '\n';
             mqtt_async_client_.connect(mqtt_connect_opts)->wait_for(std::chrono::seconds(30));
         }
     } catch (const mqtt::exception& mqtt_expn) {
         std::cerr << log_ros_mqtt_bridge_ << " connection error : " << mqtt_expn.what() << '\n';
+    }
+}
+
+/**
+ * @brief Function for synthesize mqtt subscription
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.09
+ * @return void
+ * @see mqtt_subscribe
+*/
+void RosMqttConnectionManager::grant_mqtt_subscriptions() {
+    this->mqtt_subscribe(mqtt_topics::subscription::chatter_topic);
+}
+
+/**
+ * @brief Function for handle mqtt callback message for ros publish
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.09
+ * @param mqtt_topic std::string&
+ * @param mqtt_payload std::string&
+ * @return void
+ * @see message_arrived
+ * @see ros_mqtt_connections
+*/
+void RosMqttConnectionManager::publish_to_ros(std::string& mqtt_topic, std::string& mqtt_payload) {
+    std::cout << "[RosMqttConnectionManager] message arrived" << '\n';
+    std::cout << "\ttopic: '" << mqtt_topic << "'" << '\n';
+    std::cout << "\tpayload: '" << mqtt_payload << "'" << '\n';
+
+    if(mqtt_topic == "/chatter") {
+        std::cout << "[RosMqttConnectionManager] publish to " << mqtt_topic << '\n';
+
+        auto std_message = std_msgs::msg::String();
+        std_message.data = mqtt_payload;
+
+        ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_->publish(std_message);
     }
 }
 
@@ -84,7 +120,6 @@ void RosMqttConnectionManager::connection_lost(const std::string& mqtt_connectio
     std::cerr << log_ros_mqtt_bridge_ << " connection lost : " << mqtt_connection_lost_cause << '\n';
 }
 
-
 /**
  * @brief Overrided function for handle message when mqtt subscription get callback mqtt message
  * @author reidlo(naru5135@wavem.net)
@@ -98,14 +133,7 @@ void RosMqttConnectionManager::connection_lost(const std::string& mqtt_connectio
 void RosMqttConnectionManager::message_arrived(mqtt::const_message_ptr mqtt_message) {
     std::string mqtt_topic = mqtt_message->get_topic();
     std::string mqtt_payload = mqtt_message->to_string();
-
-	std::cout << log_ros_mqtt_bridge_ << " message arrived" << '\n';
-    std::cout << "\ttopic: '" << mqtt_topic << "'" << '\n';
-    std::cout << "\tpayload: '" << mqtt_payload << "'" << '\n';
-
-    auto message = std_msgs::msg::String();
-    message.data = mqtt_payload;
-    ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_->publish(message);
+    this->publish_to_ros(mqtt_topic, mqtt_payload);
 }
 
 /**
@@ -145,7 +173,7 @@ void RosMqttConnectionManager::mqtt_publish(char * mqtt_topic, std::string mqtt_
 }
 
 /**
- * @brief Function for create mqtt subscription from mqtt Broker
+ * @brief Function for create mqtt subscription from mqtt broker
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.01
  * @param topic char *
@@ -156,7 +184,7 @@ void RosMqttConnectionManager::mqtt_subscribe(char * mqtt_topic) {
 		std::cout << log_ros_mqtt_bridge_ << " grant subscription with '" << mqtt_topic << "' " << '\n';
 		mqtt_async_client_.subscribe(mqtt_topic, mqtt_qos_);
 	} catch (const mqtt::exception& mqtt_expn) {
-		std::cerr << log_ros_mqtt_bridge_ << " grant subscriptions error : " << mqtt_expn.what() << '\n';
+		std::cerr << log_ros_mqtt_bridge_ << " grant subscription error : " << mqtt_expn.what() << '\n';
 	}
 }
 
@@ -170,11 +198,11 @@ void RosMqttConnectionManager::mqtt_subscribe(char * mqtt_topic) {
  * @see ros_mqtt_topics
 */
 void RosMqttConnectionManager::create_ros_publishers() {
-    ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_mqtt_connections::topic::chatter_topic, 10);
+    ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_topics::to_connection::chatter_topic, rclcpp::QoS(rclcpp::KeepLast(0)));
 }
 
 /**
- * @brief Function for create ros subscriptions
+ * @brief Function for create ros subscription
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.09
  * @return void
@@ -184,19 +212,20 @@ void RosMqttConnectionManager::create_ros_publishers() {
 */
 void RosMqttConnectionManager::create_ros_subscriptions() {
     ros_mqtt_connections::subscription::ros_chatter_subscription_ptr_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
-        ros_mqtt_topics::subscription::chatter_topic,
+        ros_topics::from_connection::chatter_topic,
         rclcpp::QoS(rclcpp::KeepLast(10)),
-        [this](const std_msgs::msg::String::SharedPtr chatter_message) {
-            std::string chatter_json_str = std_msgs_converter_ptr_->convert_chatter_to_json(chatter_message);
-            mqtt_publish(ros_mqtt_topics::publisher::chatter_topic, chatter_json_str);
+        [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
+            std::cout << "[RosMqttConnectionManager] chatter callback : " << callback_chatter_data->data.c_str() << '\n';
+            std::string chatter_json_str = std_msgs_converter_ptr_->convert_chatter_to_json(callback_chatter_data);
+            mqtt_publish(mqtt_topics::publisher::chatter_topic, chatter_json_str);
         }
     );
     ros_mqtt_connections::subscription::ros_odom_subscription_ptr_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Odometry>(
-        ros_mqtt_topics::subscription::odom_topic,
+        ros_topics::from_connection::odom_topic,
         rclcpp::QoS(rclcpp::KeepLast(10)),
-        [this](const nav_msgs::msg::Odometry::SharedPtr odom_message) {
-            std::string odom_json_str = nav_msgs_converter_ptr_->convert_odom_to_json(odom_message);
-            mqtt_publish(ros_mqtt_topics::publisher::odom_topic, odom_json_str);
+        [this](const nav_msgs::msg::Odometry::SharedPtr callback_odom_data) {
+            std::string odom_json_str = nav_msgs_converter_ptr_->convert_odom_to_json(callback_odom_data);
+            mqtt_publish(mqtt_topics::publisher::odom_topic, odom_json_str);
         }
     );
 }

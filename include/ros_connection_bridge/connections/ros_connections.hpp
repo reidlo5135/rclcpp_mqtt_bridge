@@ -40,20 +40,36 @@
 #include "nav_msgs/msg/odometry.hpp"
 
 /**
- * @brief namespace for declare rclcpp shared pointers
+ * @brief namespace for declare ros connections to mqtt
  * @author reidlo(naru5135@wavem.net)
- * @date 23.05.04
+ * @date 23.05.09
  * @see rclcpp::Publisher
  * @see rclcpp::Subscription
 */
-namespace ros_connections {
+namespace ros_connections_to_mqtt {
     namespace publisher {
-        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_std_publisher_ptr_;
+        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_chatter_publisher_ptr_;
         rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr ros_odom_publisher_ptr_;
     }
     namespace subscription {
-        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_std_subscription_ptr_;
+        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_ptr_;
+    }
+}
+
+/**
+ * @brief namespace for declare ros connections from mqtt
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.09
+ * @see rclcpp::Publisher
+ * @see rclcpp::Subscription
+*/
+namespace ros_connections_from_mqtt {
+    namespace publisher {
+        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_chatter_publisher_ptr_;
+    }
+    namespace subscription {
+        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
     }
 }
 
@@ -63,13 +79,19 @@ namespace ros_connections {
  * @date 23.05.04
 */
 namespace ros_topics {
-    namespace publisher {
-        const char * chatter = "ros_connection_bridge/chatter";
-        const char * odometry = "ros_connection_bridge/odom";
+    namespace to_mqtt {
+        const char * origin_chatter = "/chatter";
+        const char * bridge_chatter = "connection_bridge/chatter";
+        const char * origin_odometry = "/odom";
+        const char * bridge_odometry = "connection_bridge/odom";
+        const char * origin_scan = "/scan";
+        const char * bridge_scan = "connection_bridge/scan";
+        const char * origin_tf = "/tf";
+        const char * bridge_tf = "connection_bridge/tf";
     }
-    namespace subscription {
-        const char * chatter = "/chatter";
-        const char * odometry = "/odom";
+    namespace from_mqtt {
+        const char * bridge_chatter = "mqtt_bridge/chatter";
+        const char * origin_chatter = "/chatter";
     }
 }
 
