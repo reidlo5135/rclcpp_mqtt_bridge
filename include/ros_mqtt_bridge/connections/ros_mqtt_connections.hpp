@@ -40,7 +40,7 @@
 #include "nav_msgs/msg/odometry.hpp"
 
 /**
- * @brief namespace for declare rclcpp shared pointers & ros topics
+ * @brief namespace for declare ros connections
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.04
  * @see rclcpp::Publisher
@@ -54,26 +54,35 @@ namespace ros_mqtt_connections {
         rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_ptr_;
     }
-    namespace topic {
-        const char * chatter_topic = "ros_connection_bridge/chatter";
-        const char * odom_topic = "ros_connection_bridge/odom";
+}
+
+/**
+ * @brief namespace for declare ros topics
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.09
+*/
+namespace ros_topics {
+    namespace to_connection {
+        char * chatter_topic = "mqtt_bridge/chatter";
+    }
+    namespace from_connection {
+        char * chatter_topic = "connection_bridge/chatter";
+        char * odom_topic = "connection_bridge/odom";
     }
 }
 
 /**
- * @brief namespace for declare ros_mqtt topics
+ * @brief namespace for declare mqtt topics
  * @author reidlo(naru5135@wavem.net)
- * @date 23.05.04
- * @see mqtt
+ * @date 23.05.09
 */
-namespace ros_mqtt_topics {
+namespace mqtt_topics {
     namespace publisher {
         char * chatter_topic = "/chatter";
         char * odom_topic = "/odom";
     }
     namespace subscription {
         char * chatter_topic = "/chatter";
-        char * odom_topic = "/odom";
     }
 }
 

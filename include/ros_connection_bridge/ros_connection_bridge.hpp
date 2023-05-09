@@ -67,8 +67,8 @@ class RosConnectionPublisher {
 class RosConnectionSubscription {
     private :
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
-        void create_subscriptions_from_mqtt_bridge();
-        void create_subscriptions_for_mqtt_bridge();
+        void create_bridge_to_mqtt();
+        void create_bridge_from_mqtt();
     public :
         RosConnectionSubscription(std::shared_ptr<rclcpp::Node> ros_node_ptr);
         virtual ~RosConnectionSubscription();
