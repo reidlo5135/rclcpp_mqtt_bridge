@@ -42,10 +42,52 @@ ros_message_converter::ros_std_msgs::StdMessageConverter::~StdMessageConverter()
 */
 std::string ros_message_converter::ros_std_msgs::StdMessageConverter::convert_chatter_to_json(const std_msgs::msg::String::SharedPtr chatter_msgs_ptr) {
     Json::Value chatter_json;
+
     chatter_json["data"] = chatter_msgs_ptr->data;
 
     std::string chatter_json_str = Json::StyledWriter().write(chatter_json);
     return chatter_json_str;
+}
+
+/**
+ * @brief Constructor for initialize this class instance
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.09
+*/
+ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::GeometryMessageConverter() {
+
+}
+
+/**
+ * @brief Virtual Destructor for this class
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.09
+*/
+ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::~GeometryMessageConverter() {
+
+}
+
+/**
+ * @brief Function for convert geometry_msg::msg::Pose data into Json String
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.09
+ * @param pose_msgs_ptr geometry_msgs::msg::Pose::SharedPtr
+ * @return std::string
+*/
+std::string ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::convert_pose_to_json(const geometry_msgs::msg::Pose::SharedPtr pose_msgs_ptr) {
+    Json::Value pose_json;
+
+    pose_json["position"]["x"] = pose_msgs_ptr->position.x;
+    pose_json["position"]["y"] = pose_msgs_ptr->position.y;
+    pose_json["position"]["z"] = pose_msgs_ptr->position.z;
+
+    pose_json["orientation"]["x"] = pose_msgs_ptr->orientation.x;
+    pose_json["orientation"]["y"] = pose_msgs_ptr->orientation.y;
+    pose_json["orientation"]["z"] = pose_msgs_ptr->orientation.z;
+    pose_json["orientation"]["w"] = pose_msgs_ptr->orientation.w;
+
+    std::string pose_json_str = Json::StyledWriter().write(pose_json);
+    return pose_json_str;
 }
 
 /**
@@ -75,6 +117,7 @@ ros_message_converter::ros_sensor_msgs::SensorMessageConverter::~SensorMessageCo
 */
 std::string ros_message_converter::ros_sensor_msgs::SensorMessageConverter::convert_scan_to_json(const sensor_msgs::msg::LaserScan::SharedPtr scan_msgs_ptr) {
     Json::Value scan_json;
+
     scan_json["header"]["frame_id"] = scan_msgs_ptr->header.frame_id;
     scan_json["header"]["seq"] = scan_msgs_ptr->header.stamp.sec;
     scan_json["header"]["stamp"] = scan_msgs_ptr->header.stamp.sec + scan_msgs_ptr->header.stamp.nanosec * 1e-9;
@@ -88,11 +131,11 @@ std::string ros_message_converter::ros_sensor_msgs::SensorMessageConverter::conv
 
     scan_json["range_min"] = scan_msgs_ptr->range_min;
     scan_json["range_max"] = scan_msgs_ptr->range_max;
-    for (const auto& range : scan_msgs_ptr->ranges) {
+    for (const float& range : scan_msgs_ptr->ranges) {
         scan_json["ranges"].append(range);
     }
 
-    for (const auto& intense : scan_msgs_ptr->intensities) {
+    for (const float& intense : scan_msgs_ptr->intensities) {
         scan_json["intensities"].append(intense);
     }
 
@@ -127,6 +170,7 @@ ros_message_converter::ros_nav_msgs::NavMessageConverter::~NavMessageConverter()
 */
 std::string ros_message_converter::ros_nav_msgs::NavMessageConverter::convert_odom_to_json(const nav_msgs::msg::Odometry::SharedPtr odom_msgs_ptr) {
     Json::Value odom_json;
+
     odom_json["header"]["frame_id"] = odom_msgs_ptr->header.frame_id;
     odom_json["header"]["seq"] = odom_msgs_ptr->header.stamp.sec;
     odom_json["header"]["stamp"] = odom_msgs_ptr->header.stamp.sec + odom_msgs_ptr->header.stamp.nanosec * 1e-9;
@@ -140,7 +184,7 @@ std::string ros_message_converter::ros_nav_msgs::NavMessageConverter::convert_od
     odom_json["pose"]["pose"]["orientation"]["z"] = odom_msgs_ptr->pose.pose.orientation.z;
     odom_json["pose"]["pose"]["orientation"]["w"] = odom_msgs_ptr->pose.pose.orientation.w;
     odom_json["pose"]["covariance"] = Json::arrayValue;
-    for (const auto& cov : odom_msgs_ptr->pose.covariance) {
+    for (const double& cov : odom_msgs_ptr->pose.covariance) {
         odom_json["pose"]["covariance"].append(cov);
     }
 
@@ -151,12 +195,44 @@ std::string ros_message_converter::ros_nav_msgs::NavMessageConverter::convert_od
     odom_json["twist"]["twist"]["angular"]["y"] = odom_msgs_ptr->twist.twist.angular.y;
     odom_json["twist"]["twist"]["angular"]["z"] = odom_msgs_ptr->twist.twist.angular.z;
     odom_json["twist"]["covariance"] = Json::arrayValue;
-    for (const auto& cov : odom_msgs_ptr->twist.covariance) {
+    for (const double& cov : odom_msgs_ptr->twist.covariance) {
         odom_json["twist"]["covariance"].append(cov);
     }
 
     std::string odom_json_str = Json::StyledWriter().write(odom_json);
     return odom_json_str;
+}
+
+/**
+ * @brief Function for convert nav_msgs::msg::Path data into Json String
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.09
+ * @param nav_msgs_ptr nav_msgs::msg::Path
+ * @return std::string
+*/
+std::string ros_message_converter::ros_nav_msgs::NavMessageConverter::convert_path_to_json(const nav_msgs::msg::Path::SharedPtr path_msgs_ptr) {
+    Json::Value path_json;
+
+    path_json["header"]["frame_id"] = path_msgs_ptr->header.frame_id;
+    path_json["header"]["seq"] = path_msgs_ptr->header.stamp.sec;
+    path_json["header"]["stamp"] = path_msgs_ptr->header.stamp.sec + path_msgs_ptr->header.stamp.nanosec * 1e-9;
+    
+    for(const geometry_msgs::msg::PoseStamped& pose : path_msgs_ptr->poses) {
+        path_json["pose"]["header"]["frame_id"] = pose.header.frame_id;
+        path_json["pose"]["header"]["seq"] = pose.header.stamp.sec;
+        path_json["pose"]["header"]["stamp"] = pose.header.stamp.sec + pose.header.stamp.nanosec * 1e-9;
+        path_json["pose"]["pose"]["position"]["x"] = pose.pose.position.x;
+        path_json["pose"]["pose"]["position"]["y"] = pose.pose.position.y;
+        path_json["pose"]["pose"]["position"]["z"] = pose.pose.position.z;
+        
+        path_json["pose"]["pose"]["orientation"]["x"] = pose.pose.orientation.x;
+        path_json["pose"]["pose"]["orientation"]["y"] = pose.pose.orientation.y;
+        path_json["pose"]["pose"]["orientation"]["z"] = pose.pose.orientation.z;
+        path_json["pose"]["pose"]["orientation"]["w"] = pose.pose.orientation.w;
+    }
+
+    std::string path_json_str = Json::StyledWriter().write(path_json);
+    return path_json_str;
 }
 
 ros_message_converter::ros_tf2_msgs::Tf2MessageConverter::Tf2MessageConverter() {
@@ -170,14 +246,16 @@ ros_message_converter::ros_tf2_msgs::Tf2MessageConverter::~Tf2MessageConverter()
 std::string ros_message_converter::ros_tf2_msgs::Tf2MessageConverter::convert_tf2_to_json(const tf2_msgs::msg::TFMessage::SharedPtr tf2_msgs_ptr) {
     Json::Value tf2_json;
 
-    for(const auto& transform : tf2_msgs_ptr->transforms) {
+    for(const geometry_msgs::msg::TransformStamped& transform : tf2_msgs_ptr->transforms) {
         tf2_json["header"]["frame_id"] = transform.header.frame_id;
         tf2_json["header"]["seq"] = transform.header.stamp.sec;
         tf2_json["header"]["stamp"] = transform.header.stamp.sec + transform.header.stamp.nanosec * 1e-9;
         tf2_json["child_frame_id"] = transform.child_frame_id;
+
         tf2_json["transform"]["translation"]["x"] = transform.transform.translation.x;
         tf2_json["transform"]["translation"]["y"] = transform.transform.translation.y;
         tf2_json["transform"]["translation"]["z"] = transform.transform.translation.z;
+
         tf2_json["transform"]["rotation"]["x"] = transform.transform.rotation.x;
         tf2_json["transform"]["rotation"]["x"] = transform.transform.rotation.y;
         tf2_json["transform"]["rotation"]["x"] = transform.transform.rotation.z;

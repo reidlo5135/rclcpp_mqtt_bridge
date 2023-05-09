@@ -33,14 +33,43 @@
 /**
  * include rclcpp header files
  * @see rclcpp/rclcpp.hpp
- * @see std_msgs/msgs/string.hpp
- * @see nav_msgs/msg/odometry.hpp
 */
 #include "rclcpp/rclcpp.hpp"
+
+/**
+ * include std_msgs::msg::String header file
+ * @see std_msgs::msg::String
+*/
 #include "std_msgs/msg/string.hpp"
+
+/**
+ * include geometry_msgs' header files
+ * @see geometry_msgs::msg::Twsit
+ * @see geometry_msgs::msg::PoseWithCovarianceStamped
+*/
 #include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
+
+/**
+ * include sensor_msgs' header files
+ * @see sensor_msgs::msg::LaserScan
+*/
 #include "sensor_msgs/msg/laser_scan.hpp"
+
+/**
+ * include nav_msgs' header files
+ * @see nav_msgs::msg::path
+ * @see nav_msgs::srv::GetMap
+ * @see nav_msgs::msg::odometry
+*/
+#include "nav_msgs/msg/path.hpp"
+#include "nav_msgs/srv/get_map.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+
+/**
+ * include tf2_msgs' header files
+ * @see tf2_msgs::msg::TFMessage
+*/
 #include "tf2_msgs/msg/tf_message.hpp"
 
 /**
@@ -63,6 +92,7 @@ namespace ros_message_converter {
             public :
                 GeometryMessageConverter();
                 virtual ~GeometryMessageConverter();
+                std::string convert_pose_to_json(const geometry_msgs::msg::Pose::SharedPtr pose_msgs_ptr);
         };
     }
     namespace ros_sensor_msgs {
@@ -79,6 +109,7 @@ namespace ros_message_converter {
                 NavMessageConverter();
                 virtual ~NavMessageConverter();
                 std::string convert_odom_to_json(const nav_msgs::msg::Odometry::SharedPtr odom_msgs_ptr);
+                std::string convert_path_to_json(const nav_msgs::msg::Path::SharedPtr path_msgs_ptr);
         };
     }
     namespace ros_tf2_msgs {
