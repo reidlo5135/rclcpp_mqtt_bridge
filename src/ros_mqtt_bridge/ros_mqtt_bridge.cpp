@@ -29,7 +29,7 @@ mqtt_async_client_(MQTT_ADDRESS, MQTT_CLIENT_ID),
 mqtt_qos_(MQTT_QOS),
 mqtt_is_success_(mqtt::SUCCESS) {
     this->mqtt_connect();
-    this->mqtt_subscribe(ros_mqtt_topics::subscription::chatter_topic);
+    this->grant_mqtt_subscriptions();
     this->create_ros_bridge();
 
     std_msgs_converter_ptr_ = new ros_message_converter::ros_std_msgs::StdMessageConverter();
@@ -73,6 +73,40 @@ void RosMqttConnectionManager::mqtt_connect() {
 }
 
 /**
+ * @brief Function for synthesize mqtt subscriptions
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.09
+ * @return void
+ * @see mqtt_subscribe
+*/
+void RosMqttConnectionManager::grant_mqtt_subscriptions() {
+    this->mqtt_subscribe(ros_mqtt_topics::subscription::chatter_topic);
+}
+
+/**
+ * @brief Function for handle mqtt callback message for ros publish
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.09
+ * @param mqtt_topic std::string&
+ * @param mqtt_payload std::string&
+ * @return void
+ * @see message_arrived
+ * @see ros_mqtt_connections
+*/
+void RosMqttConnectionManager::handle_mqtt_message(std::string& mqtt_topic, std::string& mqtt_payload) {
+    std::cout << "[RosMqttConnectionManager] message arrived" << '\n';
+    std::cout << "\ttopic: '" << mqtt_topic << "'" << '\n';
+    std::cout << "\tpayload: '" << mqtt_payload << "'" << '\n';
+
+    if(mqtt_topic == "/chatter") {
+        std::cout << "[RosMqttConnectionManager] publish to " << mqtt_topic << '\n';
+        auto std_message = std_msgs::msg::String();
+        std_message.data = mqtt_payload.c_str();
+        ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_->publish(std_message);
+    }
+}
+
+/**
  * @brief Overrided function for handle cause when mqtt connection lost
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.09
@@ -83,7 +117,6 @@ void RosMqttConnectionManager::mqtt_connect() {
 void RosMqttConnectionManager::connection_lost(const std::string& mqtt_connection_lost_cause) {
     std::cerr << log_ros_mqtt_bridge_ << " connection lost : " << mqtt_connection_lost_cause << '\n';
 }
-
 
 /**
  * @brief Overrided function for handle message when mqtt subscription get callback mqtt message
@@ -98,14 +131,7 @@ void RosMqttConnectionManager::connection_lost(const std::string& mqtt_connectio
 void RosMqttConnectionManager::message_arrived(mqtt::const_message_ptr mqtt_message) {
     std::string mqtt_topic = mqtt_message->get_topic();
     std::string mqtt_payload = mqtt_message->to_string();
-
-	std::cout << log_ros_mqtt_bridge_ << " message arrived" << '\n';
-    std::cout << "\ttopic: '" << mqtt_topic << "'" << '\n';
-    std::cout << "\tpayload: '" << mqtt_payload << "'" << '\n';
-
-    auto message = std_msgs::msg::String();
-    message.data = mqtt_payload;
-    ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_->publish(message);
+    this->handle_mqtt_message(mqtt_topic, mqtt_payload);
 }
 
 /**
@@ -145,7 +171,7 @@ void RosMqttConnectionManager::mqtt_publish(char * mqtt_topic, std::string mqtt_
 }
 
 /**
- * @brief Function for create mqtt subscription from mqtt Broker
+ * @brief Function for create mqtt subscription from mqtt broker
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.01
  * @param topic char *
@@ -170,6 +196,7 @@ void RosMqttConnectionManager::mqtt_subscribe(char * mqtt_topic) {
  * @see ros_mqtt_topics
 */
 void RosMqttConnectionManager::create_ros_publishers() {
+    // ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>("/chatter", 10);
     ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_mqtt_connections::topic::chatter_topic, 10);
 }
 

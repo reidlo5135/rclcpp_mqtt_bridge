@@ -45,8 +45,10 @@ RosConnectionPublisher::~RosConnectionPublisher() {
  * @see ros_connections
 */
 void RosConnectionPublisher::create_publishers() {
-    ros_connections::publisher::ros_std_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_topics::publisher::chatter, 10);
-    ros_connections::publisher::ros_odom_publisher_ptr_ = ros_node_ptr_->create_publisher<nav_msgs::msg::Odometry>(ros_topics::publisher::odometry, 10);
+    ros_connections_to_mqtt::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_topics::publisher::chatter, 10);
+    ros_connections_to_mqtt::publisher::ros_odom_publisher_ptr_ = ros_node_ptr_->create_publisher<nav_msgs::msg::Odometry>(ros_topics::publisher::odometry, 10);
+
+    ros_connections_from_mqtt::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_topics::subscription::chatter, 10);
 }
 
 /**
@@ -60,7 +62,8 @@ void RosConnectionPublisher::create_publishers() {
 */
 RosConnectionSubscription::RosConnectionSubscription(std::shared_ptr<rclcpp::Node> ros_node_ptr)
 : ros_node_ptr_(ros_node_ptr) {
-    this->create_subscriptions();
+    this->create_subscriptions_from_mqtt_bridge();
+    this->create_subscriptions_for_mqtt_bridge();
 }
 
 /**
@@ -72,6 +75,17 @@ RosConnectionSubscription::~RosConnectionSubscription() {
 
 }
 
+void RosConnectionSubscription::create_subscriptions_from_mqtt_bridge() {
+    ros_connections_from_mqtt::subscription::ros_chatter_subscription_ptr_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
+        ros_topics::publisher::chatter,
+        rclcpp::QoS(rclcpp::KeepLast(10)),
+        [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
+            std::cout << "[RosConnectionBridge] "  << callback_chatter_data->data << '\n';
+            ros_connections_from_mqtt::publisher::ros_chatter_publisher_ptr_->publish(*callback_chatter_data);
+        }
+    );
+}
+
 /**
  * @brief Function for create & register subscriptions to ros_connection_bridge rclcpp::Node
  * @author reidlo(naru5135@wavem.net)
@@ -79,19 +93,19 @@ RosConnectionSubscription::~RosConnectionSubscription() {
  * @return void
  * @see ros_connections
 */
-void RosConnectionSubscription::create_subscriptions() {
-    ros_connections::subscription::ros_std_subscription_ptr_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
+void RosConnectionSubscription::create_subscriptions_for_mqtt_bridge() {
+    ros_connections_to_mqtt::subscription::ros_chatter_subscription_ptr_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
         ros_topics::subscription::chatter,
         rclcpp::QoS(rclcpp::KeepLast(10)),
         [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
-            ros_connections::publisher::ros_std_publisher_ptr_->publish(*callback_chatter_data);
+            ros_connections_to_mqtt::publisher::ros_chatter_publisher_ptr_->publish(*callback_chatter_data);
         }
     );
-    ros_connections::subscription::ros_odom_subscription_ptr_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Odometry>(
+    ros_connections_to_mqtt::subscription::ros_odom_subscription_ptr_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Odometry>(
         ros_topics::subscription::odometry,
         rclcpp::QoS(rclcpp::KeepLast(10)),
         [this](const nav_msgs::msg::Odometry::SharedPtr callback_odom_data) {
-            ros_connections::publisher::ros_odom_publisher_ptr_->publish(*callback_odom_data);
+            ros_connections_to_mqtt::publisher::ros_odom_publisher_ptr_->publish(*callback_odom_data);
         }
     );
 }
