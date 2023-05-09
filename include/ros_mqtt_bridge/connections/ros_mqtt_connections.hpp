@@ -30,12 +30,6 @@
 #include <functional>
 
 /**
- * include mqtt header file
- * @see mqtt/mqtt.hpp
-*/
-#include "mqtt/mqtt.hpp"
-
-/**
  * include rclcpp header files
  * @see rclcpp/rclcpp.hpp
  * @see std_msgs/msgs/string.hpp
