@@ -131,6 +131,7 @@ std::string ros_message_converter::ros_sensor_msgs::SensorMessageConverter::conv
 
     scan_json["range_min"] = scan_msgs_ptr->range_min;
     scan_json["range_max"] = scan_msgs_ptr->range_max;
+    
     for (const float& range : scan_msgs_ptr->ranges) {
         scan_json["ranges"].append(range);
     }
@@ -179,10 +180,12 @@ std::string ros_message_converter::ros_nav_msgs::NavMessageConverter::convert_od
     odom_json["pose"]["pose"]["position"]["x"] = odom_msgs_ptr->pose.pose.position.x;
     odom_json["pose"]["pose"]["position"]["y"] = odom_msgs_ptr->pose.pose.position.y;
     odom_json["pose"]["pose"]["position"]["z"] = odom_msgs_ptr->pose.pose.position.z;
+
     odom_json["pose"]["pose"]["orientation"]["x"] = odom_msgs_ptr->pose.pose.orientation.x;
     odom_json["pose"]["pose"]["orientation"]["y"] = odom_msgs_ptr->pose.pose.orientation.y;
     odom_json["pose"]["pose"]["orientation"]["z"] = odom_msgs_ptr->pose.pose.orientation.z;
     odom_json["pose"]["pose"]["orientation"]["w"] = odom_msgs_ptr->pose.pose.orientation.w;
+
     odom_json["pose"]["covariance"] = Json::arrayValue;
     for (const double& cov : odom_msgs_ptr->pose.covariance) {
         odom_json["pose"]["covariance"].append(cov);
@@ -191,9 +194,11 @@ std::string ros_message_converter::ros_nav_msgs::NavMessageConverter::convert_od
     odom_json["twist"]["twist"]["linear"]["x"] = odom_msgs_ptr->twist.twist.linear.x;
     odom_json["twist"]["twist"]["linear"]["y"] = odom_msgs_ptr->twist.twist.linear.y;
     odom_json["twist"]["twist"]["linear"]["z"] = odom_msgs_ptr->twist.twist.linear.z;
+
     odom_json["twist"]["twist"]["angular"]["x"] = odom_msgs_ptr->twist.twist.angular.x;
     odom_json["twist"]["twist"]["angular"]["y"] = odom_msgs_ptr->twist.twist.angular.y;
     odom_json["twist"]["twist"]["angular"]["z"] = odom_msgs_ptr->twist.twist.angular.z;
+
     odom_json["twist"]["covariance"] = Json::arrayValue;
     for (const double& cov : odom_msgs_ptr->twist.covariance) {
         odom_json["twist"]["covariance"].append(cov);
@@ -221,6 +226,7 @@ std::string ros_message_converter::ros_nav_msgs::NavMessageConverter::convert_pa
         path_json["pose"]["header"]["frame_id"] = pose.header.frame_id;
         path_json["pose"]["header"]["seq"] = pose.header.stamp.sec;
         path_json["pose"]["header"]["stamp"] = pose.header.stamp.sec + pose.header.stamp.nanosec * 1e-9;
+
         path_json["pose"]["pose"]["position"]["x"] = pose.pose.position.x;
         path_json["pose"]["pose"]["position"]["y"] = pose.pose.position.y;
         path_json["pose"]["pose"]["position"]["z"] = pose.pose.position.z;
@@ -243,25 +249,25 @@ ros_message_converter::ros_tf2_msgs::Tf2MessageConverter::~Tf2MessageConverter()
 
 }
 
-std::string ros_message_converter::ros_tf2_msgs::Tf2MessageConverter::convert_tf2_to_json(const tf2_msgs::msg::TFMessage::SharedPtr tf2_msgs_ptr) {
-    Json::Value tf2_json;
+std::string ros_message_converter::ros_tf2_msgs::Tf2MessageConverter::convert_tf_to_json(const tf2_msgs::msg::TFMessage::SharedPtr tf_msgs_ptr) {
+    Json::Value tf_json;
 
-    for(const geometry_msgs::msg::TransformStamped& transform : tf2_msgs_ptr->transforms) {
-        tf2_json["header"]["frame_id"] = transform.header.frame_id;
-        tf2_json["header"]["seq"] = transform.header.stamp.sec;
-        tf2_json["header"]["stamp"] = transform.header.stamp.sec + transform.header.stamp.nanosec * 1e-9;
-        tf2_json["child_frame_id"] = transform.child_frame_id;
+    for(const geometry_msgs::msg::TransformStamped& transform : tf_msgs_ptr->transforms) {
+        tf_json["header"]["frame_id"] = transform.header.frame_id;
+        tf_json["header"]["seq"] = transform.header.stamp.sec;
+        tf_json["header"]["stamp"] = transform.header.stamp.sec + transform.header.stamp.nanosec * 1e-9;
+        tf_json["child_frame_id"] = transform.child_frame_id;
 
-        tf2_json["transform"]["translation"]["x"] = transform.transform.translation.x;
-        tf2_json["transform"]["translation"]["y"] = transform.transform.translation.y;
-        tf2_json["transform"]["translation"]["z"] = transform.transform.translation.z;
+        tf_json["transform"]["translation"]["x"] = transform.transform.translation.x;
+        tf_json["transform"]["translation"]["y"] = transform.transform.translation.y;
+        tf_json["transform"]["translation"]["z"] = transform.transform.translation.z;
 
-        tf2_json["transform"]["rotation"]["x"] = transform.transform.rotation.x;
-        tf2_json["transform"]["rotation"]["x"] = transform.transform.rotation.y;
-        tf2_json["transform"]["rotation"]["x"] = transform.transform.rotation.z;
-        tf2_json["transform"]["rotation"]["x"] = transform.transform.rotation.w;
+        tf_json["transform"]["rotation"]["x"] = transform.transform.rotation.x;
+        tf_json["transform"]["rotation"]["x"] = transform.transform.rotation.y;
+        tf_json["transform"]["rotation"]["x"] = transform.transform.rotation.z;
+        tf_json["transform"]["rotation"]["x"] = transform.transform.rotation.w;
     }
     
-    std::string tf2_json_str = Json::StyledWriter().write(tf2_json);
+    std::string tf2_json_str = Json::StyledWriter().write(tf_json);
     return tf2_json_str;
 }

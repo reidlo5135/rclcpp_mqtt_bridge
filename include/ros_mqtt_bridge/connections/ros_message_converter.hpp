@@ -117,7 +117,7 @@ namespace ros_message_converter {
             public :
                 Tf2MessageConverter();
                 virtual ~Tf2MessageConverter();
-                std::string convert_tf2_to_json(const tf2_msgs::msg::TFMessage::SharedPtr tf2_msgs_ptr);
+                std::string convert_tf_to_json(const tf2_msgs::msg::TFMessage::SharedPtr tf_msgs_ptr);
         };
     }
 }
