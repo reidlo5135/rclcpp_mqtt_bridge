@@ -48,6 +48,7 @@ void RosConnectionPublisher::create_publishers() {
     // ros_connections::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>("/chatter", 10);
     ros_connections_to_mqtt::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_topics::to_mqtt::bridge_chatter, 10);
     ros_connections_to_mqtt::publisher::ros_odom_publisher_ptr_ = ros_node_ptr_->create_publisher<nav_msgs::msg::Odometry>(ros_topics::to_mqtt::bridge_odometry, 10);
+    ros_connections_to_mqtt::publisher::ros_tf_publisher_ptr_ = ros_node_ptr_->create_publisher<tf2_msgs::msg::TFMessage>(ros_topics::to_mqtt::bridge_tf, 10);
 
     ros_connections_from_mqtt::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_topics::from_mqtt::origin_chatter, 10);
 }
@@ -97,6 +98,13 @@ void RosConnectionSubscription::create_bridge_to_mqtt() {
         rclcpp::QoS(rclcpp::KeepLast(10)),
         [this](const nav_msgs::msg::Odometry::SharedPtr callback_odom_data) {
             ros_connections_to_mqtt::publisher::ros_odom_publisher_ptr_->publish(*callback_odom_data);
+        }
+    );
+    ros_connections_to_mqtt::subscription::ros_tf_subscription_ptr_ = ros_node_ptr_->create_subscription<tf2_msgs::msg::TFMessage>(
+        ros_topics::to_mqtt::origin_tf,
+        rclcpp::QoS(rclcpp::KeepLast(10)),
+        [this](const tf2_msgs::msg::TFMessage::SharedPtr callback_tf_data) {
+            ros_connections_to_mqtt::publisher::ros_tf_publisher_ptr_->publish(*callback_tf_data);
         }
     );
 }

@@ -71,6 +71,7 @@ class RosMqttConnectionManager : public virtual mqtt::callback {
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
         ros_message_converter::ros_std_msgs::StdMessageConverter * std_msgs_converter_ptr_;
         ros_message_converter::ros_nav_msgs::NavMessageConverter * nav_msgs_converter_ptr_;
+        ros_message_converter::ros_tf2_msgs::Tf2MessageConverter * tf2_msgs_converter_ptr_;
         mqtt::async_client mqtt_async_client_;
         const int mqtt_qos_;
 		const int mqtt_is_success_;

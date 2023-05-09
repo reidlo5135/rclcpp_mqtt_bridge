@@ -34,6 +34,7 @@ mqtt_is_success_(mqtt::SUCCESS) {
 
     std_msgs_converter_ptr_ = new ros_message_converter::ros_std_msgs::StdMessageConverter();
     nav_msgs_converter_ptr_ = new ros_message_converter::ros_nav_msgs::NavMessageConverter();
+    tf2_msgs_converter_ptr_ = new ros_message_converter::ros_tf2_msgs::Tf2MessageConverter();
 };
 
 /**
@@ -61,10 +62,10 @@ void RosMqttConnectionManager::mqtt_connect() {
         mqtt_connect_opts.set_clean_session(true);
         mqtt_async_client_.connect(mqtt_connect_opts)->wait_for(std::chrono::seconds(60));
         if(mqtt_async_client_.is_connected()) {
-            std::cout << log_ros_mqtt_bridge_ << " connection success" << '\n';
+            std::cout << log_ros_mqtt_bridge_ << " MQTT connection success" << '\n';
             mqtt_async_client_.set_callback(*this);
         } else {
-            std::cout << log_ros_mqtt_bridge_ << " connection failed... started reconnect" << '\n';
+            std::cout << log_ros_mqtt_bridge_ << " MQTT connection failed... trying to reconnect" << '\n';
             mqtt_async_client_.connect(mqtt_connect_opts)->wait_for(std::chrono::seconds(30));
         }
     } catch (const mqtt::exception& mqtt_expn) {
@@ -226,6 +227,14 @@ void RosMqttConnectionManager::create_ros_subscriptions() {
         [this](const nav_msgs::msg::Odometry::SharedPtr callback_odom_data) {
             std::string odom_json_str = nav_msgs_converter_ptr_->convert_odom_to_json(callback_odom_data);
             mqtt_publish(mqtt_topics::publisher::odom_topic, odom_json_str);
+        }
+    );
+    ros_mqtt_connections::subscription::ros_tf_subscription_ptr_ = ros_node_ptr_->create_subscription<tf2_msgs::msg::TFMessage>(
+        ros_topics::from_connection::tf_topic,
+        rclcpp::QoS(rclcpp::KeepLast(10)),
+        [this](const tf2_msgs::msg::TFMessage::SharedPtr callback_tf_data) {
+            std::string tf_json_str = tf2_msgs_converter_ptr_->convert_tf2_to_json(callback_tf_data);
+            mqtt_publish(mqtt_topics::publisher::tf_topic, tf_json_str);
         }
     );
 }
