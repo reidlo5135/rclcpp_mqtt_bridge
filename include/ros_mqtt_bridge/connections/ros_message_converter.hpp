@@ -60,11 +60,13 @@
  * include nav_msgs' header files
  * @see nav_msgs::msg::path
  * @see nav_msgs::srv::GetMap
- * @see nav_msgs::msg::odometry
+ * @see nav_msgs::msg::Odometry
+ * @see nav2_msgs::action::Navigate_To_Pose
 */
 #include "nav_msgs/msg/path.hpp"
 #include "nav_msgs/srv/get_map.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "nav2_msgs/action/navigate_to_pose.hpp"
 
 /**
  * include tf2_msgs' header files

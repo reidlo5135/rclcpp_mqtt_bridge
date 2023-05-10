@@ -70,6 +70,8 @@ class RosMqttConnectionManager : public virtual mqtt::callback {
         const std::string& log_ros_mqtt_bridge_;
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
         ros_message_converter::ros_std_msgs::StdMessageConverter * std_msgs_converter_ptr_;
+        ros_message_converter::ros_geometry_msgs::GeometryMessageConverter * geometry_msgs_converter_ptr_;
+        ros_message_converter::ros_sensor_msgs::SensorMessageConverter * sensor_msgs_converter_ptr_;
         ros_message_converter::ros_nav_msgs::NavMessageConverter * nav_msgs_converter_ptr_;
         ros_message_converter::ros_tf2_msgs::Tf2MessageConverter * tf2_msgs_converter_ptr_;
         mqtt::async_client mqtt_async_client_;
@@ -81,8 +83,8 @@ class RosMqttConnectionManager : public virtual mqtt::callback {
         void connection_lost(const std::string& mqtt_connection_lost_cause) override;
 		void message_arrived(mqtt::const_message_ptr mqtt_message) override;
 		void delivery_complete(mqtt::delivery_token_ptr mqtt_delivered_token) override;
-        void mqtt_publish(char * topic, std::string payload);
-		void mqtt_subscribe(char * topic);
+        void mqtt_publish(const char * topic, std::string payload);
+		void mqtt_subscribe(const char * topic);
         void create_ros_publishers();
         void create_ros_subscriptions();
         void create_ros_bridge();

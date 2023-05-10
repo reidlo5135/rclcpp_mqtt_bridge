@@ -263,9 +263,9 @@ std::string ros_message_converter::ros_tf2_msgs::Tf2MessageConverter::convert_tf
         tf_json["transform"]["translation"]["z"] = transform.transform.translation.z;
 
         tf_json["transform"]["rotation"]["x"] = transform.transform.rotation.x;
-        tf_json["transform"]["rotation"]["x"] = transform.transform.rotation.y;
-        tf_json["transform"]["rotation"]["x"] = transform.transform.rotation.z;
-        tf_json["transform"]["rotation"]["x"] = transform.transform.rotation.w;
+        tf_json["transform"]["rotation"]["y"] = transform.transform.rotation.y;
+        tf_json["transform"]["rotation"]["z"] = transform.transform.rotation.z;
+        tf_json["transform"]["rotation"]["w"] = transform.transform.rotation.w;
     }
     
     std::string tf2_json_str = Json::StyledWriter().write(tf_json);

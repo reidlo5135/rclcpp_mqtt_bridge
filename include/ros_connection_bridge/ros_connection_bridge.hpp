@@ -36,8 +36,6 @@
  * @see ros_connection_bridge/connections/ros_connections.hpp
 */
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/string.hpp"
-#include "nav_msgs/msg/odometry.hpp"
 #include "ros_connection_bridge/connections/ros_connections.hpp"
 
 #define LOG_ROS_CONNECTION_BRIDGE "[ROS-CONNECTION-BRIDGE]"
@@ -53,7 +51,8 @@ using namespace std::chrono_literals;
 class RosConnectionPublisher {
     private :
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
-        void create_publishers();
+        void create_publishers_to_mqtt();
+        void create_publishers_from_mqtt();
     public :
         RosConnectionPublisher(std::shared_ptr<rclcpp::Node> ros_node_ptr);
         virtual ~RosConnectionPublisher();
@@ -67,8 +66,8 @@ class RosConnectionPublisher {
 class RosConnectionSubscription {
     private :
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
-        void create_bridge_to_mqtt();
-        void create_bridge_from_mqtt();
+        void create_subscriptions_to_mqtt();
+        void create_subscriptions_from_mqtt();
     public :
         RosConnectionSubscription(std::shared_ptr<rclcpp::Node> ros_node_ptr);
         virtual ~RosConnectionSubscription();
