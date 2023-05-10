@@ -90,7 +90,6 @@ namespace ros_connections_to_mqtt {
         rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr ros_odom_publisher_ptr_;
         rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr ros_global_plan_publisher_ptr_;
         rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr ros_local_plan_publisher_ptr_;
-        rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr ros_initial_pose_publisher_ptr_;
     }
     namespace subscription {
         rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
@@ -101,7 +100,6 @@ namespace ros_connections_to_mqtt {
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_ptr_;
         rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_global_plan_subscription_ptr_;
         rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_local_plan_subscription_ptr_;
-        rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr ros_initial_pose_subscription_ptr_;
     }
 }
 
@@ -162,7 +160,7 @@ namespace ros_topics {
         namespace bridge {
             const char * chatter = "mqtt_bridge/chatter";
             const char * cmd_vel = "mqtt_bridge/cmd_vel";
-            const char * initial_pose = "mqtt_bridge/initialpose";
+            const char * initial_pose = "mqtt_bridge/initial_pose";
         }
     }
 }

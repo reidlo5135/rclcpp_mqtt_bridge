@@ -167,6 +167,77 @@ geometry_msgs::msg::Twist ros_message_converter::ros_geometry_msgs::GeometryMess
     return twist_message;
 }
 
+geometry_msgs::msg::PoseWithCovarianceStamped ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::convert_json_to_pose_with_covariance_stamped(std::string& raw_pose_with_covariance_stamped_data) {
+    std::cout << "[RosMessageConverter] pose with covaraince stamped raw data : " << raw_pose_with_covariance_stamped_data << '\n';
+
+    Json::Value pose_with_covariance_stamped_json;
+    Json::Reader json_reader;
+    geometry_msgs::msg::PoseWithCovarianceStamped pose_with_covariance_stamped_message = geometry_msgs::msg::PoseWithCovarianceStamped();
+
+    try {
+        bool is_pose_with_covariance_stamped_parsing_success = json_reader.parse(raw_pose_with_covariance_stamped_data, pose_with_covariance_stamped_json);
+        if(is_pose_with_covariance_stamped_parsing_success) {
+            std::cout << "[RosMessageConverter] pose with covariance stamped parsing completed : " << pose_with_covariance_stamped_json << '\n';
+            if(is_pose_with_covariance_stamped_parsing_success) {
+                Json::Value header_json = pose_with_covariance_stamped_json.get("header", Json::Value::null);
+                if(!header_json.isNull()) {
+                    pose_with_covariance_stamped_message.header.frame_id = header_json.get("frame_id", "nullstr").asString();
+                    pose_with_covariance_stamped_message.header.stamp.sec = header_json.get("sec", 0.0).asDouble();
+                    pose_with_covariance_stamped_message.header.stamp.nanosec = header_json.get("nanosec", 0.0).asDouble();
+                } else {
+                    std::cerr << "[RosMessageConverter] parsing pose with covariance stamped json is null " << '\n';
+                }
+                Json::Value pose_json = pose_with_covariance_stamped_json.get("pose", Json::Value::null);
+                if(!pose_json.isNull()) {
+                    Json::Value pose_covariance_from_json = pose_json["covariance"];
+                    std::array<double, 36> pose_covariance_array;
+
+                    if(pose_covariance_from_json.isArray() && pose_covariance_from_json.size() == 36) {
+                        for(int i=0;i<36;i++) {
+                            pose_covariance_array[i] = pose_covariance_from_json[i].asDouble();
+                        }
+                    } else {
+                        std::cerr << "[RosMessageCoverter] parsing pose with covariance stamped pose.covariance is not array or out of range" << '\n';
+                    }
+
+                    Json::Value pose_pose_json = pose_json.get("pose", Json::Value::null);
+                    if(!pose_pose_json.isNull()) {
+                        Json::Value pose_pose_position_json = pose_pose_json.get("position", Json::Value::null);
+                        if(!pose_pose_position_json.isNull()) {
+                            pose_with_covariance_stamped_message.pose.pose.position.x = pose_pose_position_json.get("x", 0.0).asDouble();
+                            pose_with_covariance_stamped_message.pose.pose.position.y = pose_pose_position_json.get("y", 0.0).asDouble();
+                            pose_with_covariance_stamped_message.pose.pose.position.z = pose_pose_position_json.get("z", 0.0).asDouble();
+                        } else {
+                            std::cerr << "[RosMessageConverter] parsing with covariance stamped pose.pose.position json is null " << '\n';
+                        }
+
+                        Json::Value pose_pose_orientation_json = pose_pose_json.get("orientation", Json::Value::null);
+                        if(!pose_pose_orientation_json.isNull()) {
+                            pose_with_covariance_stamped_message.pose.pose.orientation.x = pose_pose_orientation_json.get("x", 0.0).asDouble();
+                            pose_with_covariance_stamped_message.pose.pose.orientation.y = pose_pose_orientation_json.get("y", 0.0).asDouble();
+                            pose_with_covariance_stamped_message.pose.pose.orientation.z = pose_pose_orientation_json.get("z", 0.0).asDouble();
+                        } else {
+                            std::cerr << "[RosMessageConverter] parsing with covariance stamped pose.pose.orientation json is null " << '\n';
+                        }
+                    } else {
+                        std::cerr << "[RosMessageConverter] parsing with covariance stamped pose.position json is null " << '\n';
+                    }
+                } else {
+                    std::cerr << "[RosMessageConverter] parsing pose with covariance stamped pose json is null " << '\n';
+                }
+            } else {
+                std::cerr << "[RosMessageConverter] parsing pose with covariance stamped json err : "  << json_reader.getFormatedErrorMessages() << '\n';
+            }
+        } else {
+            std::cerr << "[RosMessageConverter] parsing twist json err : "  << json_reader.getFormatedErrorMessages() << '\n';
+        }
+    } catch(const Json::Exception& json_expn) {
+        std::cerr << "[RosMessageConverter] parsing pose with covariance stamped json err : " << json_expn.what() << '\n';
+    }
+    
+    return pose_with_covariance_stamped_message;
+}
+
 /**
  * @brief Constructor for initialize this class instance
  * @author reidlo(naru5135@wavem.net)
