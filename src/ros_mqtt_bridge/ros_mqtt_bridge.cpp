@@ -37,7 +37,7 @@ mqtt_is_success_(mqtt::SUCCESS) {
     sensor_msgs_converter_ptr_ = new ros_message_converter::ros_sensor_msgs::SensorMessageConverter();
     nav_msgs_converter_ptr_ = new ros_message_converter::ros_nav_msgs::NavMessageConverter();
     tf2_msgs_converter_ptr_ = new ros_message_converter::ros_tf2_msgs::Tf2MessageConverter();
-};
+}
 
 /**
  * @brief Virtual Destructor for this class
@@ -87,6 +87,8 @@ void RosMqttConnectionManager::mqtt_connect() {
 */
 void RosMqttConnectionManager::grant_mqtt_subscriptions() {
     this->mqtt_subscribe(mqtt_topics::subscription::chatter);
+    this->mqtt_subscribe(mqtt_topics::subscription::cmd_vel);
+    this->mqtt_subscribe(mqtt_topics::subscription::initial_pose);
 }
 
 /**
@@ -105,12 +107,23 @@ void RosMqttConnectionManager::publish_to_ros(std::string& mqtt_topic, std::stri
     std::cout << "\tpayload: '" << mqtt_payload << "'" << '\n';
 
     if(mqtt_topic == "/chatter") {
-        std::cout << "[RosMqttConnectionManager] publish to " << mqtt_topic << '\n';
+        try {
+            std::cout << "[RosMqttConnectionManager] publish to " << mqtt_topic << '\n';
 
-        auto std_message = std_msgs::msg::String();
-        std_message.data = mqtt_payload;
+            std_msgs::msg::String std_message = std_msgs_converter_ptr_->convert_json_to_chatter(mqtt_payload);
+            ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_->publish(std_message);
+        } catch(const std::exception& expn) {
 
-        ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_->publish(std_message);
+        }
+    } else if(mqtt_topic == "/cmd_vel") {
+        try {
+            std::cout << "[RosMqttConnectionManager] publish to " << mqtt_topic << '\n';
+
+            geometry_msgs::msg::Twist twist_message = geometry_msgs_converter_ptr_->convert_json_to_twist(mqtt_payload);
+            ros_mqtt_connections::publisher::ros_cmd_vel_publisher_ptr_->publish(twist_message);
+        } catch(const std::exception& expn) {
+            std::cerr << "[RosMqttConnectionManager] publish cmd_vel runtime error : " << expn.what() << '\n';
+        }
     }
 }
 
@@ -205,6 +218,8 @@ void RosMqttConnectionManager::mqtt_subscribe(const char * mqtt_topic) {
 */
 void RosMqttConnectionManager::create_ros_publishers() {
     ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_topics::to_connection::chatter, rclcpp::QoS(rclcpp::KeepLast(0)));
+    ros_mqtt_connections::publisher::ros_cmd_vel_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::Twist>(ros_topics::to_connection::cmd_vel, rclcpp::QoS(rclcpp::KeepLast(10)));
+    ros_mqtt_connections::publisher::ros_initial_pose_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(ros_topics::to_connection::initial_pose, rclcpp::QoS(rclcpp::KeepLast(10)));
 }
 
 /**
@@ -232,6 +247,14 @@ void RosMqttConnectionManager::create_ros_subscriptions() {
         [this](const geometry_msgs::msg::Pose::SharedPtr callback_robot_pose_data) {
             std::string robot_pose_json_str = geometry_msgs_converter_ptr_->convert_pose_to_json(callback_robot_pose_data);
             mqtt_publish(mqtt_topics::publisher::robot_pose, robot_pose_json_str);
+        }
+    );
+    ros_mqtt_connections::subscription::ros_cmd_vel_subscription_ptr_ = ros_node_ptr_->create_subscription<geometry_msgs::msg::Twist>(
+        ros_topics::from_connection::cmd_vel,
+        rclcpp::QoS(rclcpp::KeepLast(10)),
+        [this](const geometry_msgs::msg::Twist::SharedPtr callback_twist_data) {
+            std::string twist_json_str = geometry_msgs_converter_ptr_->convert_twist_to_json(callback_twist_data);
+            mqtt_publish(mqtt_topics::publisher::cmd_vel, twist_json_str);
         }
     );
     ros_mqtt_connections::subscription::ros_scan_subscription_ptr_ = ros_node_ptr_->create_subscription<sensor_msgs::msg::LaserScan>(
