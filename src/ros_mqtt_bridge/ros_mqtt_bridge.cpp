@@ -109,20 +109,26 @@ void RosMqttConnectionManager::publish_to_ros(std::string& mqtt_topic, std::stri
     if(mqtt_topic == "/chatter") {
         try {
             std::cout << "[RosMqttConnectionManager] publish to " << mqtt_topic << '\n';
-
             std_msgs::msg::String std_message = std_msgs_converter_ptr_->convert_json_to_chatter(mqtt_payload);
             ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_->publish(std_message);
         } catch(const std::exception& expn) {
-
+            std::cerr << "[RosMqttConnectionManager] publish chatter error : " << expn.what() << '\n';
         }
     } else if(mqtt_topic == "/cmd_vel") {
         try {
             std::cout << "[RosMqttConnectionManager] publish to " << mqtt_topic << '\n';
-
             geometry_msgs::msg::Twist twist_message = geometry_msgs_converter_ptr_->convert_json_to_twist(mqtt_payload);
             ros_mqtt_connections::publisher::ros_cmd_vel_publisher_ptr_->publish(twist_message);
         } catch(const std::exception& expn) {
-            std::cerr << "[RosMqttConnectionManager] publish cmd_vel runtime error : " << expn.what() << '\n';
+            std::cerr << "[RosMqttConnectionManager] publish cmd_vel error : " << expn.what() << '\n';
+        }
+    } else if(mqtt_topic == "/initialpose") {
+        try {
+            std::cout << "[RosMqttConnectionManager] publish to " << mqtt_topic << '\n';
+            geometry_msgs::msg::PoseWithCovarianceStamped pose_with_covariance_stamped_message = geometry_msgs_converter_ptr_->convert_json_to_pose_with_covariance_stamped(mqtt_payload);
+            ros_mqtt_connections::publisher::ros_initial_pose_publisher_ptr_->publish(pose_with_covariance_stamped_message);
+        } catch(const std::exception& expn) {
+            std::cerr << "[RosMqttConnectionManager] publish initial_pose error : " << expn.what() << '\n';
         }
     }
 }
@@ -217,9 +223,18 @@ void RosMqttConnectionManager::mqtt_subscribe(const char * mqtt_topic) {
  * @see ros_mqtt_topics
 */
 void RosMqttConnectionManager::create_ros_publishers() {
-    ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_topics::to_connection::chatter, rclcpp::QoS(rclcpp::KeepLast(0)));
-    ros_mqtt_connections::publisher::ros_cmd_vel_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::Twist>(ros_topics::to_connection::cmd_vel, rclcpp::QoS(rclcpp::KeepLast(10)));
-    ros_mqtt_connections::publisher::ros_initial_pose_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(ros_topics::to_connection::initial_pose, rclcpp::QoS(rclcpp::KeepLast(10)));
+    ros_mqtt_connections::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(
+        ros_topics::to_connection::chatter,
+        rclcpp::QoS(rclcpp::KeepLast(0))
+    );
+    ros_mqtt_connections::publisher::ros_cmd_vel_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::Twist>(
+        ros_topics::to_connection::cmd_vel,
+        rclcpp::QoS(rclcpp::KeepLast(10))
+    );
+    ros_mqtt_connections::publisher::ros_initial_pose_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
+        ros_topics::to_connection::initial_pose,
+        rclcpp::QoS(rclcpp::KeepLast(10))
+    );
 }
 
 /**
@@ -236,7 +251,6 @@ void RosMqttConnectionManager::create_ros_subscriptions() {
         ros_topics::from_connection::chatter,
         rclcpp::QoS(rclcpp::KeepLast(10)),
         [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
-            std::cout << "[RosMqttConnectionManager] chatter callback : " << callback_chatter_data->data.c_str() << '\n';
             std::string chatter_json_str = std_msgs_converter_ptr_->convert_chatter_to_json(callback_chatter_data);
             mqtt_publish(mqtt_topics::publisher::chatter, chatter_json_str);
         }

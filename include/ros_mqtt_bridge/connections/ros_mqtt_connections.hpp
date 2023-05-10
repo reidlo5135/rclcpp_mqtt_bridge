@@ -113,7 +113,7 @@ namespace ros_topics {
         const char * initial_pose = "mqtt_bridge/initial_pose";
     }
     namespace from_connection {
-        const char * chatter = "connection_bridge/chatter";
+        const char * chatter = "/chatter";
         const char * robot_pose = "connection_bridge/robot_pose";
         const char * scan = "connection_bridge/scan";
         const char * tf = "connection_bridge/tf";
@@ -132,7 +132,7 @@ namespace ros_topics {
 */
 namespace mqtt_topics {
     namespace publisher {
-        const char * chatter = "/chatter";
+        const char * chatter = "/callback/chatter";
         const char * robot_pose = "/robot_pose";
         const char * scan = "/scan";
         const char * tf = "/tf";
@@ -145,7 +145,7 @@ namespace mqtt_topics {
     namespace subscription {
         const char * chatter = "/chatter";
         const char * cmd_vel = "/cmd_vel";
-        const char * initial_pose = "/initalpose";
+        const char * initial_pose = "/initialpose";
     }
 }
 

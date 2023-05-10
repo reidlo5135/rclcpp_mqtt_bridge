@@ -97,6 +97,7 @@ namespace ros_message_converter {
                 std::string convert_pose_to_json(const geometry_msgs::msg::Pose::SharedPtr pose_msgs_ptr);
                 std::string convert_twist_to_json(const geometry_msgs::msg::Twist::SharedPtr twist_msgs_ptr);
                 geometry_msgs::msg::Twist convert_json_to_twist(std::string& raw_twist_data);
+                geometry_msgs::msg::PoseWithCovarianceStamped convert_json_to_pose_with_covariance_stamped(std::string& raw_pose_with_covariance_stamped_data);
         };
     }
     namespace ros_sensor_msgs {

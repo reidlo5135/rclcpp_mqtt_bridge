@@ -131,8 +131,7 @@ void RosConnectionSubscription::create_subscriptions_to_mqtt() {
         ros_topics::to_mqtt::origin::chatter,
         rclcpp::QoS(rclcpp::KeepLast(10)),
         [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
-            std::cout << "[RosConnectionBridge] to mqtt chatter callback : " << callback_chatter_data->data.c_str() << '\n';
-            // ros_connections_to_mqtt::publisher::ros_chatter_publisher_ptr_->publish(*callback_chatter_data);
+            ros_connections_to_mqtt::publisher::ros_chatter_publisher_ptr_->publish(*callback_chatter_data);
         }
     );
     ros_connections_to_mqtt::subscription::ros_robot_pose_subscription_ptr_ = ros_node_ptr_->create_subscription<geometry_msgs::msg::Pose>(
@@ -198,7 +197,6 @@ void RosConnectionSubscription::create_subscriptions_from_mqtt() {
         ros_topics::from_mqtt::bridge::chatter,
         rclcpp::QoS(rclcpp::KeepLast(0)),
         [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
-            std::cout << "[RosConnectionBridge] from mqtt chatter callback : " << callback_chatter_data->data.c_str() << '\n';
             ros_connections_from_mqtt::publisher::ros_chatter_publisher_ptr_->publish(*callback_chatter_data);
         }
     );
@@ -209,7 +207,7 @@ void RosConnectionSubscription::create_subscriptions_from_mqtt() {
             ros_connections_from_mqtt::publisher::ros_cmd_vel_publisher_ptr_->publish(*callback_cmd_vel_data);
         }
     );
-    ros_connections_to_mqtt::subscription::ros_initial_pose_subscription_ptr_ = ros_node_ptr_->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
+    ros_connections_from_mqtt::subscription::ros_initial_pose_subscription_ptr_ = ros_node_ptr_->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
         ros_topics::from_mqtt::bridge::initial_pose,
         rclcpp::QoS(rclcpp::KeepLast(10)),
         [this](const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr callback_initial_pose_data) {
