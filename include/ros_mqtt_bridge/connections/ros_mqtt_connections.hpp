@@ -36,10 +36,43 @@
  * @see nav_msgs/msg/odometry.hpp
 */
 #include "rclcpp/rclcpp.hpp"
+
+/**
+ * include std_msgs::msg::String header file
+ * @see std_msgs::msg::String
+*/
 #include "std_msgs/msg/string.hpp"
+
+/**
+ * include geometry_msgs' header files
+ * @see geometry_msgs::msg::Twsit
+ * @see geometry_msgs::msg::PoseWithCovarianceStamped
+*/
 #include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
+
+/**
+ * include sensor_msgs' header files
+ * @see sensor_msgs::msg::LaserScan
+*/
 #include "sensor_msgs/msg/laser_scan.hpp"
+
+/**
+ * include nav_msgs' header files
+ * @see nav_msgs::msg::path
+ * @see nav_msgs::srv::GetMap
+ * @see nav_msgs::msg::Odometry
+ * @see nav2_msgs::action::Navigate_To_Pose
+*/
+#include "nav_msgs/msg/path.hpp"
+#include "nav_msgs/srv/get_map.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "nav2_msgs/action/navigate_to_pose.hpp"
+
+/**
+ * include tf2_msgs' header files
+ * @see tf2_msgs::msg::TFMessage
+*/
 #include "tf2_msgs/msg/tf_message.hpp"
 
 /**
@@ -52,11 +85,18 @@
 namespace ros_mqtt_connections {
     namespace publisher {
         rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_chatter_publisher_ptr_;
+        rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr ros_cmd_vel_publisher_ptr_;
+        rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr ros_initial_pose_publisher_ptr_;
     }
     namespace subscription {
         rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
-        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_ptr_;
+        rclcpp::Subscription<geometry_msgs::msg::Pose>::SharedPtr ros_robot_pose_subscription_ptr_;
+        rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr ros_scan_subscription_ptr_;
         rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr ros_tf_subscription_ptr_;
+        rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr ros_tf_static_subscription_ptr_;
+        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_ptr_;
+        rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_global_plan_subscription_ptr_;
+        rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_local_plan_subscription_ptr_;
     }
 }
 
@@ -67,12 +107,19 @@ namespace ros_mqtt_connections {
 */
 namespace ros_topics {
     namespace to_connection {
-        char * chatter_topic = "mqtt_bridge/chatter";
+        const char * chatter = "mqtt_bridge/chatter";
+        const char * cmd_vel = "mqtt_bridge/cmd_vel";
+        const char * initial_pose = "mqtt_bridge/initial_pose";
     }
     namespace from_connection {
-        const char * chatter_topic = "connection_bridge/chatter";
-        const char * odom_topic = "connection_bridge/odom";
-        const char * tf_topic = "connection_bridge/tf";
+        const char * chatter = "connection_bridge/chatter";
+        const char * robot_pose = "connection_bridge/robot_pose";
+        const char * scan = "connection_bridge/scan";
+        const char * tf = "connection_bridge/tf";
+        const char * tf_static = "connection_bridge/tf_static";
+        const char * odom = "connection_bridge/odom";
+        const char * global_plan = "connection_bridge/global_plan";
+        const char * local_plan = "conenction_bridge/local_plan";
     }
 }
 
@@ -83,12 +130,19 @@ namespace ros_topics {
 */
 namespace mqtt_topics {
     namespace publisher {
-        char * chatter_topic = "/chatter";
-        char * odom_topic = "/odom";
-        char * tf_topic = "/tf";
+        const char * chatter = "/chatter";
+        const char * robot_pose = "/robot_pose";
+        const char * scan = "/scan";
+        const char * tf = "/tf";
+        const char * tf_static = "/tf_static";
+        const char * odom = "/odom";
+        const char * global_plan = "/global_plan";
+        const char * local_plan = "/local_plan";
     }
     namespace subscription {
-        char * chatter_topic = "/chatter";
+        const char * chatter = "/chatter";
+        const char * cmd_vel = "/cmd_vel";
+        const char * initial_pose = "/initalpose";
     }
 }
 

@@ -25,7 +25,8 @@
 */
 RosConnectionPublisher::RosConnectionPublisher(std::shared_ptr<rclcpp::Node> ros_node_ptr)
 : ros_node_ptr_(ros_node_ptr) {
-    this->create_publishers();
+    this->create_publishers_to_mqtt();
+    this->create_publishers_from_mqtt();
 }
 
 /**
@@ -44,13 +45,54 @@ RosConnectionPublisher::~RosConnectionPublisher() {
  * @return void
  * @see ros_connections
 */
-void RosConnectionPublisher::create_publishers() {
-    // ros_connections::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>("/chatter", 10);
-    ros_connections_to_mqtt::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_topics::to_mqtt::bridge_chatter, 10);
-    ros_connections_to_mqtt::publisher::ros_odom_publisher_ptr_ = ros_node_ptr_->create_publisher<nav_msgs::msg::Odometry>(ros_topics::to_mqtt::bridge_odometry, 10);
-    ros_connections_to_mqtt::publisher::ros_tf_publisher_ptr_ = ros_node_ptr_->create_publisher<tf2_msgs::msg::TFMessage>(ros_topics::to_mqtt::bridge_tf, 10);
+void RosConnectionPublisher::create_publishers_to_mqtt() {
+    ros_connections_to_mqtt::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(
+        ros_topics::to_mqtt::bridge::chatter,
+        rclcpp::QoS(rclcpp::KeepLast(10))
+    );
+    ros_connections_to_mqtt::publisher::ros_robot_pose_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::Pose>(
+        ros_topics::to_mqtt::bridge::robot_pose,
+        rclcpp::QoS(rclcpp::KeepLast(10))
+    );
+    ros_connections_to_mqtt::publisher::ros_scan_publisher_ptr_ = ros_node_ptr_->create_publisher<sensor_msgs::msg::LaserScan>(
+        ros_topics::to_mqtt::bridge::scan,
+        rclcpp::QoS(rclcpp::KeepLast(10))
+    );
+    ros_connections_to_mqtt::publisher::ros_tf_publisher_ptr_ = ros_node_ptr_->create_publisher<tf2_msgs::msg::TFMessage>(
+        ros_topics::to_mqtt::bridge::tf,
+        rclcpp::QoS(rclcpp::KeepLast(10))
+    );
+    ros_connections_to_mqtt::publisher::ros_tf_static_publisher_ptr_ = ros_node_ptr_->create_publisher<tf2_msgs::msg::TFMessage>(
+        ros_topics::to_mqtt::bridge::tf_static,
+        rclcpp::QoS(rclcpp::KeepLast(10))
+    );
+    ros_connections_to_mqtt::publisher::ros_odom_publisher_ptr_ = ros_node_ptr_->create_publisher<nav_msgs::msg::Odometry>(
+        ros_topics::to_mqtt::bridge::odom,
+        rclcpp::QoS(rclcpp::KeepLast(10))
+    );
+    ros_connections_to_mqtt::publisher::ros_global_plan_publisher_ptr_ = ros_node_ptr_->create_publisher<nav_msgs::msg::Path>(
+        ros_topics::to_mqtt::bridge::global_plan,
+        rclcpp::QoS(rclcpp::KeepLast(10))
+    );
+    ros_connections_to_mqtt::publisher::ros_local_plan_publisher_ptr_ = ros_node_ptr_->create_publisher<nav_msgs::msg::Path>(
+        ros_topics::to_mqtt::bridge::local_plan,
+        rclcpp::QoS(rclcpp::KeepLast(10))
+    );
+}
 
-    ros_connections_from_mqtt::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(ros_topics::from_mqtt::origin_chatter, 10);
+void RosConnectionPublisher::create_publishers_from_mqtt() {
+    ros_connections_from_mqtt::publisher::ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(
+        ros_topics::from_mqtt::origin::chatter,
+        rclcpp::QoS(rclcpp::KeepLast(10))
+    );
+    ros_connections_from_mqtt::publisher::ros_cmd_vel_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::Twist>(
+        ros_topics::from_mqtt::origin::cmd_vel,
+        rclcpp::QoS(rclcpp::KeepLast(10))
+    );
+    ros_connections_from_mqtt::publisher::ros_initial_pose_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
+        ros_topics::from_mqtt::origin::initial_pose,
+        rclcpp::QoS(rclcpp::KeepLast(10))
+    );
 }
 
 /**
@@ -64,8 +106,8 @@ void RosConnectionPublisher::create_publishers() {
 */
 RosConnectionSubscription::RosConnectionSubscription(std::shared_ptr<rclcpp::Node> ros_node_ptr)
 : ros_node_ptr_(ros_node_ptr) {
-    this->create_bridge_to_mqtt();
-    this->create_bridge_from_mqtt();
+    this->create_subscriptions_to_mqtt();
+    this->create_subscriptions_from_mqtt();
 }
 
 /**
@@ -84,27 +126,62 @@ RosConnectionSubscription::~RosConnectionSubscription() {
  * @return void
  * @see ros_connections_to_mqtt
 */
-void RosConnectionSubscription::create_bridge_to_mqtt() {
+void RosConnectionSubscription::create_subscriptions_to_mqtt() {
     ros_connections_to_mqtt::subscription::ros_chatter_subscription_ptr_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
-        ros_topics::to_mqtt::origin_chatter,
+        ros_topics::to_mqtt::origin::chatter,
         rclcpp::QoS(rclcpp::KeepLast(10)),
         [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
             std::cout << "[RosConnectionBridge] to mqtt chatter callback : " << callback_chatter_data->data.c_str() << '\n';
             // ros_connections_to_mqtt::publisher::ros_chatter_publisher_ptr_->publish(*callback_chatter_data);
         }
     );
+    ros_connections_to_mqtt::subscription::ros_robot_pose_subscription_ptr_ = ros_node_ptr_->create_subscription<geometry_msgs::msg::Pose>(
+        ros_topics::to_mqtt::origin::robot_pose,
+        rclcpp::QoS(rclcpp::KeepLast(10)),
+        [this](const geometry_msgs::msg::Pose::SharedPtr callback_robot_pose_data) {
+            ros_connections_to_mqtt::publisher::ros_robot_pose_publisher_ptr_->publish(*callback_robot_pose_data);
+        }
+    );
+    ros_connections_to_mqtt::subscription::ros_scan_subscription_ptr_ = ros_node_ptr_->create_subscription<sensor_msgs::msg::LaserScan>(
+        ros_topics::to_mqtt::origin::scan,
+        rclcpp::QoS(rclcpp::KeepLast(10)),
+        [this](const sensor_msgs::msg::LaserScan::SharedPtr callback_scan_data) {
+            ros_connections_to_mqtt::publisher::ros_scan_publisher_ptr_->publish(*callback_scan_data);
+        }
+    );
+    ros_connections_to_mqtt::subscription::ros_tf_subscription_ptr_ = ros_node_ptr_->create_subscription<tf2_msgs::msg::TFMessage>(
+        ros_topics::to_mqtt::origin::tf,
+        rclcpp::QoS(rclcpp::KeepLast(10)),
+        [this](const tf2_msgs::msg::TFMessage::SharedPtr callback_tf_data) {
+            ros_connections_to_mqtt::publisher::ros_tf_publisher_ptr_->publish(*callback_tf_data);
+        }
+    );
+    ros_connections_to_mqtt::subscription::ros_tf_static_subscription_ptr_ = ros_node_ptr_->create_subscription<tf2_msgs::msg::TFMessage>(
+        ros_topics::to_mqtt::origin::tf_static,
+        rclcpp::QoS(rclcpp::KeepLast(10)),
+        [this](const tf2_msgs::msg::TFMessage::SharedPtr callback_tf_static_data) {
+            ros_connections_to_mqtt::publisher::ros_tf_static_publisher_ptr_->publish(*callback_tf_static_data);
+        }
+    );
     ros_connections_to_mqtt::subscription::ros_odom_subscription_ptr_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Odometry>(
-        ros_topics::to_mqtt::origin_odometry,
+        ros_topics::to_mqtt::origin::odom,
         rclcpp::QoS(rclcpp::KeepLast(10)),
         [this](const nav_msgs::msg::Odometry::SharedPtr callback_odom_data) {
             ros_connections_to_mqtt::publisher::ros_odom_publisher_ptr_->publish(*callback_odom_data);
         }
     );
-    ros_connections_to_mqtt::subscription::ros_tf_subscription_ptr_ = ros_node_ptr_->create_subscription<tf2_msgs::msg::TFMessage>(
-        ros_topics::to_mqtt::origin_tf,
+    ros_connections_to_mqtt::subscription::ros_global_plan_subscription_ptr_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Path>(
+        ros_topics::to_mqtt::origin::global_plan,
         rclcpp::QoS(rclcpp::KeepLast(10)),
-        [this](const tf2_msgs::msg::TFMessage::SharedPtr callback_tf_data) {
-            ros_connections_to_mqtt::publisher::ros_tf_publisher_ptr_->publish(*callback_tf_data);
+        [this](const nav_msgs::msg::Path::SharedPtr callback_global_plan_data) {
+            ros_connections_to_mqtt::publisher::ros_global_plan_publisher_ptr_->publish(*callback_global_plan_data);
+        }
+    );
+    ros_connections_to_mqtt::subscription::ros_local_plan_subscription_ptr_ = ros_node_ptr_->create_subscription<nav_msgs::msg::Path>(
+        ros_topics::to_mqtt::origin::local_plan,
+        rclcpp::QoS(rclcpp::KeepLast(10)),
+        [this](const nav_msgs::msg::Path::SharedPtr callback_local_plan_data) {
+            ros_connections_to_mqtt::publisher::ros_local_plan_publisher_ptr_->publish(*callback_local_plan_data);
         }
     );
 }
@@ -116,13 +193,27 @@ void RosConnectionSubscription::create_bridge_to_mqtt() {
  * @return void
  * @see ros_connections_from_mqtt
 */
-void RosConnectionSubscription::create_bridge_from_mqtt() {
+void RosConnectionSubscription::create_subscriptions_from_mqtt() {
     ros_connections_from_mqtt::subscription::ros_chatter_subscription_ptr_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
-        ros_topics::from_mqtt::bridge_chatter,
+        ros_topics::from_mqtt::bridge::chatter,
         rclcpp::QoS(rclcpp::KeepLast(0)),
         [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
             std::cout << "[RosConnectionBridge] from mqtt chatter callback : " << callback_chatter_data->data.c_str() << '\n';
             ros_connections_from_mqtt::publisher::ros_chatter_publisher_ptr_->publish(*callback_chatter_data);
+        }
+    );
+    ros_connections_from_mqtt::subscription::ros_cmd_vel_subscription_ptr_ = ros_node_ptr_->create_subscription<geometry_msgs::msg::Twist>(
+        ros_topics::from_mqtt::bridge::cmd_vel,
+        rclcpp::QoS(rclcpp::KeepLast(10)),
+        [this](const geometry_msgs::msg::Twist::SharedPtr callback_cmd_vel_data) {
+            ros_connections_from_mqtt::publisher::ros_cmd_vel_publisher_ptr_->publish(*callback_cmd_vel_data);
+        }
+    );
+    ros_connections_to_mqtt::subscription::ros_initial_pose_subscription_ptr_ = ros_node_ptr_->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
+        ros_topics::from_mqtt::bridge::initial_pose,
+        rclcpp::QoS(rclcpp::KeepLast(10)),
+        [this](const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr callback_initial_pose_data) {
+            ros_connections_from_mqtt::publisher::ros_initial_pose_publisher_ptr_->publish(*callback_initial_pose_data);
         }
     );
 }
