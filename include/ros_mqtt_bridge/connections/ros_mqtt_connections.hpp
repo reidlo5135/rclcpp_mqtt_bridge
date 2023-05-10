@@ -97,6 +97,7 @@ namespace ros_mqtt_connections {
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_ptr_;
         rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_global_plan_subscription_ptr_;
         rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_local_plan_subscription_ptr_;
+        rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr ros_cmd_vel_subscription_ptr_;
     }
 }
 
@@ -120,6 +121,7 @@ namespace ros_topics {
         const char * odom = "connection_bridge/odom";
         const char * global_plan = "connection_bridge/global_plan";
         const char * local_plan = "conenction_bridge/local_plan";
+        const char * cmd_vel = "/cmd_vel";
     }
 }
 
@@ -138,6 +140,7 @@ namespace mqtt_topics {
         const char * odom = "/odom";
         const char * global_plan = "/global_plan";
         const char * local_plan = "/local_plan";
+        const char * cmd_vel = "/callback/cmd_vel";
     }
     namespace subscription {
         const char * chatter = "/chatter";

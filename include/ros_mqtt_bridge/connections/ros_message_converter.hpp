@@ -86,7 +86,7 @@ namespace ros_message_converter {
                 StdMessageConverter();
                 virtual ~StdMessageConverter();
                 std::string convert_chatter_to_json(const std_msgs::msg::String::SharedPtr chatter_msgs_ptr);
-                std_msgs::msg::String::SharedPtr convert_json_to_chatter(Json::Value received_json);
+                std_msgs::msg::String convert_json_to_chatter(std::string& raw_std_string_data);
         };
     }
     namespace ros_geometry_msgs {
@@ -95,6 +95,8 @@ namespace ros_message_converter {
                 GeometryMessageConverter();
                 virtual ~GeometryMessageConverter();
                 std::string convert_pose_to_json(const geometry_msgs::msg::Pose::SharedPtr pose_msgs_ptr);
+                std::string convert_twist_to_json(const geometry_msgs::msg::Twist::SharedPtr twist_msgs_ptr);
+                geometry_msgs::msg::Twist convert_json_to_twist(std::string& raw_twist_data);
         };
     }
     namespace ros_sensor_msgs {

@@ -49,6 +49,28 @@ std::string ros_message_converter::ros_std_msgs::StdMessageConverter::convert_ch
     return chatter_json_str;
 }
 
+std_msgs::msg::String ros_message_converter::ros_std_msgs::StdMessageConverter::convert_json_to_chatter(std::string& raw_std_string_data) {
+    std::cout << "[RosMessageConverter] json to std_msgs raw data : " << raw_std_string_data << '\n';
+
+    Json::Value std_string_json;
+    Json::Reader json_reader;
+    std_msgs::msg::String std_string_message = std_msgs::msg::String();
+    
+    try {
+        bool is_parsing_success = json_reader.parse(raw_std_string_data, std_string_json);
+        if(is_parsing_success) {
+            std::cout << "[RosMessageConverter] parsing std_string into json completed : " << std_string_json << '\n';
+            std_string_message.data = std_string_json.get("data", "nullstr").asString();
+        } else {
+            std::cerr << "[RosMessageConverter] parsing std_string into json err : "  << json_reader.getFormatedErrorMessages() << '\n';
+        }
+    } catch(const std::exception& expn) {
+        std::cerr << "[RosMessageConverter] parsing std std_string into json err: " << expn.what() << '\n';
+    }
+
+    return std_string_message;
+}
+
 /**
  * @brief Constructor for initialize this class instance
  * @author reidlo(naru5135@wavem.net)
@@ -88,6 +110,61 @@ std::string ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::
 
     std::string pose_json_str = Json::StyledWriter().write(pose_json);
     return pose_json_str;
+}
+
+std::string ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::convert_twist_to_json(const geometry_msgs::msg::Twist::SharedPtr twist_msgs_ptr) {
+    Json::Value twist_json;
+
+    twist_json["linear"]["x"] = twist_msgs_ptr->linear.x;
+    twist_json["linear"]["y"] = twist_msgs_ptr->linear.y;
+    twist_json["linear"]["z"] = twist_msgs_ptr->linear.z;
+
+    twist_json["angular"]["x"] = twist_msgs_ptr->angular.x;
+    twist_json["angular"]["y"] = twist_msgs_ptr->angular.y;
+    twist_json["angular"]["z"] = twist_msgs_ptr->angular.z;
+
+    std::string twist_json_str = Json::StyledWriter().write(twist_json);
+    return twist_json_str;
+}
+
+geometry_msgs::msg::Twist ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::convert_json_to_twist(std::string& raw_twist_data) {
+    std::cout << "[RosMessageConverter] json to std_msgs raw data : " << raw_twist_data << '\n';
+
+    Json::Value twist_json;   
+    Json::Reader json_reader;
+    geometry_msgs::msg::Twist twist_message = geometry_msgs::msg::Twist();
+
+    try {
+        bool is_twist_parsing_success = json_reader.parse(raw_twist_data, twist_json);
+        if(is_twist_parsing_success) {
+            std::cout << "[RosMessageConverter] twist parsing completed : " << twist_json << '\n';
+            
+            Json::Value linear_json = twist_json.get("linear", Json::Value::null);
+            if(!linear_json.isNull()) {
+                std::cout << "[RosMessageConverter] linear parsing completed : " << linear_json << '\n';
+                twist_message.linear.x = linear_json.get("x", 0.0).asDouble();
+                twist_message.linear.y = linear_json.get("y", 0.0).asDouble();
+                twist_message.linear.z = linear_json.get("z", 0.0).asDouble();
+            } else {
+                std::cerr << "[RosMessageConverter] parsing twist linear json is null " << '\n';
+            }
+
+            Json::Value angular_json = twist_json.get("angular", Json::Value::null);
+            if(!angular_json.isNull()) {
+                std::cout << "[RosMessageConverter] angular parsing completed : " << angular_json << '\n';
+                twist_message.angular.x = angular_json.get("x", 0.0).asDouble();
+                twist_message.angular.y = angular_json.get("y", 0.0).asDouble();
+                twist_message.angular.z = angular_json.get("z", 0.0).asDouble();
+            } else {
+                std::cerr << "[RosMessageConverter] parsing twist angular json is null " << '\n';
+            }
+        } else {
+            std::cerr << "[RosMessageConverter] parsing twist json err : "  << json_reader.getFormatedErrorMessages() << '\n';
+        }
+    } catch(const Json::Exception& json_expn) {
+        std::cerr << "[RosMessageConverter] parsing twist json err : " << json_expn.what() << '\n';
+    }
+    return twist_message;
 }
 
 /**
