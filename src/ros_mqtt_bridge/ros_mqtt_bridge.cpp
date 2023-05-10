@@ -106,7 +106,7 @@ void RosMqttConnectionManager::publish_to_ros(std::string& mqtt_topic, std::stri
     std::cout << "\ttopic: '" << mqtt_topic << "'" << '\n';
     std::cout << "\tpayload: '" << mqtt_payload << "'" << '\n';
 
-    if(mqtt_topic == "/chatter") {
+    if(mqtt_topic == mqtt_topics::subscription::chatter) {
         try {
             std::cout << "[RosMqttConnectionManager] publish to " << mqtt_topic << '\n';
             std_msgs::msg::String std_message = std_msgs_converter_ptr_->convert_json_to_chatter(mqtt_payload);
@@ -114,7 +114,7 @@ void RosMqttConnectionManager::publish_to_ros(std::string& mqtt_topic, std::stri
         } catch(const std::exception& expn) {
             std::cerr << "[RosMqttConnectionManager] publish chatter error : " << expn.what() << '\n';
         }
-    } else if(mqtt_topic == "/cmd_vel") {
+    } else if(mqtt_topic == mqtt_topics::subscription::cmd_vel) {
         try {
             std::cout << "[RosMqttConnectionManager] publish to " << mqtt_topic << '\n';
             geometry_msgs::msg::Twist twist_message = geometry_msgs_converter_ptr_->convert_json_to_twist(mqtt_payload);
@@ -122,7 +122,7 @@ void RosMqttConnectionManager::publish_to_ros(std::string& mqtt_topic, std::stri
         } catch(const std::exception& expn) {
             std::cerr << "[RosMqttConnectionManager] publish cmd_vel error : " << expn.what() << '\n';
         }
-    } else if(mqtt_topic == "/initialpose") {
+    } else if(mqtt_topic == mqtt_topics::subscription::initial_pose) {
         try {
             std::cout << "[RosMqttConnectionManager] publish to " << mqtt_topic << '\n';
             geometry_msgs::msg::PoseWithCovarianceStamped pose_with_covariance_stamped_message = geometry_msgs_converter_ptr_->convert_json_to_pose_with_covariance_stamped(mqtt_payload);
