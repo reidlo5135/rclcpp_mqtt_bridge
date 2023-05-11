@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ros_mqtt_bridge/connections/ros_message_converter.hpp"
+#include "ros_mqtt_bridge/connections/ros_mqtt_message_converter.hpp"
 
 
 /**

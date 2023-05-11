@@ -44,36 +44,6 @@ using std::placeholders::_1;
 using namespace std::chrono_literals;
 
 /**
- * @brief Class for establish ros2 publishers
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.04
-*/
-class RosConnectionPublisher {
-    private :
-        std::shared_ptr<rclcpp::Node> ros_node_ptr_;
-        void create_publishers_to_mqtt();
-        void create_publishers_from_mqtt();
-    public :
-        RosConnectionPublisher(std::shared_ptr<rclcpp::Node> ros_node_ptr);
-        virtual ~RosConnectionPublisher();
-};
-
-/**
- * @brief Class for establish ros2 subscriptions
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.04
-*/
-class RosConnectionSubscription {
-    private :
-        std::shared_ptr<rclcpp::Node> ros_node_ptr_;
-        void create_subscriptions_to_mqtt();
-        void create_subscriptions_from_mqtt();
-    public :
-        RosConnectionSubscription(std::shared_ptr<rclcpp::Node> ros_node_ptr);
-        virtual ~RosConnectionSubscription();
-};
-
-/**
  * @brief Class for initialize rclcpp::Node & register ros2 connections into node
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.04
@@ -82,8 +52,8 @@ class RosConnectionBridge : public rclcpp::Node {
     private :
         const std::string& log_ros_;
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
-        RosConnectionPublisher * ros_connection_publisher_ptr_;
-        RosConnectionSubscription * ros_connection_subscription_ptr_;
+        ros_connections::ros_connections_to_mqtt::Bridge * ros_connections_to_mqtt_bridge_ptr_;
+        ros_connections::ros_connections_from_mqtt::Bridge * ros_connections_from_mqtt_bridge_ptr_;
         void check_current_topics_and_types();
     public :
         RosConnectionBridge();

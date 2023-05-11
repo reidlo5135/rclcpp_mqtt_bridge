@@ -33,77 +33,26 @@
 /**
  * include rclcpp header files
  * @see rclcpp/rclcpp.hpp
- * @see std_msgs/msgs/string.hpp
- * @see nav_msgs/msg/odometry.hpp
  * @see ros_mqtt_bridge/connections/ros_mqtt_connections.hpp
 */
-#include "mqtt/async_client.h"
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/string.hpp"
-#include "nav_msgs/msg/odometry.hpp"
 #include "ros_mqtt_bridge/connections/ros_mqtt_connections.hpp"
-#include "ros_mqtt_bridge/connections/ros_message_converter.hpp"
 
-// define common log string
+// define common log for ros-mqtt-bridge
 #define LOG_ROS_MQTT_BRIDGE "[ROS-MQTT-BRIDGE]"
-// define mqtt address
-#define MQTT_ADDRESS    "tcp://localhost:1883"
-// define mqtt client id
-#define MQTT_CLIENT_ID    "ros_mqtt_bridge"
-// define mqtt qos
-#define MQTT_QOS         0
-// define mqtt retry attempts
-#define MQTT_N_RETRY_ATTEMPTS 5
-
-using std::placeholders::_1;
-using namespace std::chrono_literals;
 
 /**
- * @brief Class for manage connections between ros - mqtt
+ * @brief Class for initialize rclcpp::Node & ros_mqtt_connections::to_ros::Bridge / ros_mqtt_connections::to_mqtt::Bridge classes' instances
  * @author reidlo(naru5135@wavem.net)
- * @date 23.05.09
- * @see mqtt::callback
- * @see std::shared_ptr<rclcpp::Node>
-*/
-class RosMqttConnectionManager : public virtual mqtt::callback {
-    private :
-        const std::string& log_ros_mqtt_bridge_;
-        std::shared_ptr<rclcpp::Node> ros_node_ptr_;
-        ros_message_converter::ros_std_msgs::StdMessageConverter * std_msgs_converter_ptr_;
-        ros_message_converter::ros_geometry_msgs::GeometryMessageConverter * geometry_msgs_converter_ptr_;
-        ros_message_converter::ros_sensor_msgs::SensorMessageConverter * sensor_msgs_converter_ptr_;
-        ros_message_converter::ros_nav_msgs::NavMessageConverter * nav_msgs_converter_ptr_;
-        ros_message_converter::ros_tf2_msgs::Tf2MessageConverter * tf2_msgs_converter_ptr_;
-        mqtt::async_client mqtt_async_client_;
-        const int mqtt_qos_;
-		const int mqtt_is_success_;
-        void mqtt_connect();
-        void grant_mqtt_subscriptions();
-        void publish_to_ros(std::string& mqtt_topic, std::string& mqtt_payload);
-        void connection_lost(const std::string& mqtt_connection_lost_cause) override;
-		void message_arrived(mqtt::const_message_ptr mqtt_message) override;
-		void delivery_complete(mqtt::delivery_token_ptr mqtt_delivered_token) override;
-        void mqtt_publish(const char * topic, std::string payload);
-		void mqtt_subscribe(const char * topic);
-        void create_ros_publishers();
-        void create_ros_subscriptions();
-        void create_ros_bridge();
-    public :
-        RosMqttConnectionManager(std::shared_ptr<rclcpp::Node> ros_node_ptr);
-        virtual ~RosMqttConnectionManager();
-};
-
-/**
- * @brief Class for initialize rclcpp::Node & RosMqttConnectionManager instance
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.09
+ * @date 23.05.11
  * @see std::shared_ptr<rclcpp::Node>
 */
 class RosMqttBridge : public rclcpp::Node {
     private :
         const std::string& log_ros_mqtt_bridge_;
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
-        RosMqttConnectionManager * ros_mqtt_connection_manager_ptr_;
+        ros_mqtt_connections::to_ros::Bridge * ros_mqtt_connections_to_ros_bridge_ptr_;
+        ros_mqtt_connections::to_mqtt::Bridge * ros_mqtt_conenction_to_mqtt_bridge_ptr_;
     public :
         RosMqttBridge();
         virtual ~RosMqttBridge();
