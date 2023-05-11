@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS_MESSAGE_CONVERTER
-#define ROS_MESSAGE_CONVERTER
+#ifndef ROS_MQTT_MESSAGE_CONVERTER
+#define ROS_MQTT_MESSAGE_CONVERTER
 
 /**
  * include cpp header files
@@ -94,6 +94,8 @@ namespace ros_message_converter {
             public :
                 GeometryMessageConverter();
                 virtual ~GeometryMessageConverter();
+                std::string convert_point_to_json(const geometry_msgs::msg::Point point_msgs);
+                std::string convert_quarternion_to_json(const geometry_msgs::msg::Quaternion quaternion_msgs);
                 std::string convert_pose_to_json(const geometry_msgs::msg::Pose::SharedPtr pose_msgs_ptr);
                 std::string convert_twist_to_json(const geometry_msgs::msg::Twist::SharedPtr twist_msgs_ptr);
                 geometry_msgs::msg::Twist convert_json_to_twist(std::string& raw_twist_data);

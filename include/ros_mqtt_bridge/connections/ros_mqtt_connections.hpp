@@ -79,19 +79,13 @@
 */
 #include "tf2_msgs/msg/tf_message.hpp"
 
-// define common log for connection mqtt to ros
+#define LOG_ROS_MQTT_BRIDGE "[ROS-MQTT-BRIDGE]"
 #define LOG_ROS_MQTT_CONNECTION_TO_ROS "[MQTT to ROS]"
-// define common log for connection ros to mqtt
 #define LOG_ROS_MQTT_CONNECTION_TO_MQTT "[ROS to MQTT]"
-// define ros default qos
 #define ROS_DEFAULT_QOS 10
-// define mqtt address
 #define MQTT_ADDRESS    "tcp://localhost:1883"
-// define mqtt client id
 #define MQTT_CLIENT_ID    "ros_mqtt_bridge"
-// define mqtt default qos
 #define MQTT_QOS         0
-// define mqtt retry attempts
 #define MQTT_N_RETRY_ATTEMPTS 5
 
 using std::placeholders::_1;
@@ -100,65 +94,28 @@ using namespace std::chrono_literals;
 /**
  * @brief namespace for declare ros - mqtt connections
  * @author reidlo(naru5135@wavem.net)
- * @date 23.05.04
+ * @date 23.05.11
  * @see rclcpp::Publisher
  * @see rclcpp::Subscription
 */
 namespace ros_mqtt_connections {
-    /**
-     * @brief namespace for declare mqtt to ros connection bridge node connections
-     * @author reidlo(naru5135@wavem.net)
-     * @date 23.05.11
-    */
-    namespace to_ros {
-        /**
-         * @brief Class for mqtt to ros connection bridge node connections
-         * @author reidlo(naru5135@wavem.net)
-         * @date 23.05.11
-         * @see rclcpp::Publisher
-        */
-        class Bridge {
-            private :
-                const std::string& log_ros_mqtt_connections_to_ros;
-                std::shared_ptr<rclcpp::Node> ros_node_ptr_;
-                const int ros_default_qos_;
-                ros_message_converter::ros_std_msgs::StdMessageConverter * std_msgs_converter_ptr_;
-                ros_message_converter::ros_geometry_msgs::GeometryMessageConverter * geometry_msgs_converter_ptr_;
-                rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_chatter_publisher_ptr_;
-                rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr ros_cmd_vel_publisher_ptr_;
-                rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr ros_initial_pose_publisher_ptr_;
-            public :
-                Bridge(std::shared_ptr<rclcpp::Node> ros_node_ptr);
-                virtual ~Bridge();
-                void bridge(std::string& mqtt_topic, std::string& mqtt_payload);
-        };
-    }
-    /**
-     * @brief namespace for declare this node to mqtt broker connections
-     * @author reidlo(naru5135@wavem.net)
-     * @date 23.05.11
-    */
-    namespace to_mqtt {
-        /**
-         * @brief Class for this node to mqtt broker connections
-         * @author reidlo(naru5135@wavem.net)
-         * @date 23.05.11
-         * @see rclcpp::Subscription
-         * @see mqtt::callback
-         * @see mqtt::async_client
-        */
+    namespace manager {
         class Bridge : public virtual mqtt::callback {
             private :
-                const std::string& log_ros_mqtt_connections_to_mqtt;
+                const std::string& log_ros_mqtt_bridge_;
+                const std::string& log_ros_mqtt_connections_to_mqtt_;
+                const std::string& log_ros_mqtt_connections_to_ros_;
                 std::shared_ptr<rclcpp::Node> ros_node_ptr_;
                 const int ros_default_qos_;
                 mqtt::async_client mqtt_async_client_;
-                ros_mqtt_connections::to_ros::Bridge * ros_mqtt_connections_publisher_ptr_;
                 ros_message_converter::ros_std_msgs::StdMessageConverter * std_msgs_converter_ptr_;
                 ros_message_converter::ros_geometry_msgs::GeometryMessageConverter * geometry_msgs_converter_ptr_;
                 ros_message_converter::ros_sensor_msgs::SensorMessageConverter * sensor_msgs_converter_ptr_;
                 ros_message_converter::ros_nav_msgs::NavMessageConverter * nav_msgs_converter_ptr_;
                 ros_message_converter::ros_tf2_msgs::Tf2MessageConverter * tf2_msgs_converter_ptr_;
+                rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_chatter_publisher_ptr_;
+                rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr ros_cmd_vel_publisher_ptr_;
+                rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr ros_initial_pose_publisher_ptr_;
                 rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
                 rclcpp::Subscription<geometry_msgs::msg::Pose>::SharedPtr ros_robot_pose_subscription_ptr_;
                 rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr ros_scan_subscription_ptr_;
@@ -177,9 +134,10 @@ namespace ros_mqtt_connections {
                 void delivery_complete(mqtt::delivery_token_ptr mqtt_delivered_token) override;
                 void mqtt_publish(const char * mqtt_topic, std::string mqtt_payload);
                 void mqtt_subscribe(const char * topic);
-                void bridge();
+                void bridge_ros_to_mqtt();
+                void bridge_mqtt_to_ros(std::string& mqtt_topic, std::string& mqtt_payload);
             public :
-                Bridge(std::shared_ptr<rclcpp::Node> ros_node_ptr, ros_mqtt_connections::to_ros::Bridge * ros_mqtt_connections_publisher_ptr);
+                Bridge(std::shared_ptr<rclcpp::Node> ros_node_ptr);
                 virtual ~Bridge();
         };
     }
@@ -188,14 +146,9 @@ namespace ros_mqtt_connections {
 /**
  * @brief namespace for declare ros topics
  * @author reidlo(naru5135@wavem.net)
- * @date 23.05.09
+ * @date 23.05.11
 */
 namespace ros_topics {
-    /**
-     * @brief namespace for declare topics to publish into ros
-     * @author reidlo(naru5135@wavem.net)
-     * @date 23.05.09
-    */
     namespace to_ros {
         const char * chatter = "mqtt_bridge/chatter";
         const char * cmd_vel = "mqtt_bridge/cmd_vel";
@@ -203,11 +156,6 @@ namespace ros_topics {
         const char * navigate_to_pose = "mqtt_bridge/navigate_to_pose";
         const char * map_server_map = "mqtt_bridge/map_server/map";
     }
-    /**
-     * @brief namespace for declare topics to subscribe from ros
-     * @author reidlo(naru5135@wavem.net)
-     * @date 23.05.09
-    */
     namespace from_ros {
         const char * chatter = "/chatter";
         const char * cmd_vel = "/cmd_vel";
@@ -224,14 +172,9 @@ namespace ros_topics {
 /**
  * @brief namespace for declare mqtt topics
  * @author reidlo(naru5135@wavem.net)
- * @date 23.05.09
+ * @date 23.05.11
 */
 namespace mqtt_topics {
-    /**
-     * @brief namespace for declare mqtt topics to publish into rcs
-     * @author reidlo(naru5135@wavem.net)
-     * @date 23.05.09
-    */
     namespace to_rcs {
         const char * chatter = "/callback/chatter";
         const char * robot_pose = "/robot_pose";
@@ -245,11 +188,6 @@ namespace mqtt_topics {
         const char * navigate_to_pose = "/navigate_to_pose/response";
         const char * map_server_map = "/map_server/map/response";
     }
-    /**
-     * @brief namespace for declare mqtt topics to subscribe from rcs
-     * @author reidlo(naru5135@wavem.net)
-     * @date 23.05.09
-    */
     namespace from_rcs {
         const char * chatter = "/chatter";
         const char * cmd_vel = "/cmd_vel";
