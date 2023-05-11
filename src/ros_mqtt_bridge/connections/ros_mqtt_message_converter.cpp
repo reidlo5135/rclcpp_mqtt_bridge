@@ -89,6 +89,29 @@ ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::~GeometryMes
 
 }
 
+std::string ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::convert_point_to_json(const geometry_msgs::msg::Point point_msgs) {
+    Json::Value point_json;
+
+    point_json["x"] = point_msgs.x;
+    point_json["y"] = point_msgs.y;
+    point_json["z"] = point_msgs.z;
+
+    std::string point_json_str = Json::StyledWriter().write(point_json);
+    return point_json_str;
+}
+
+std::string ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::convert_quarternion_to_json(const geometry_msgs::msg::Quaternion quaternion_msgs) {
+    Json::Value quaternion_json;
+
+    quaternion_json["x"] = quaternion_msgs.x;
+    quaternion_json["y"] = quaternion_msgs.y;
+    quaternion_json["z"] = quaternion_msgs.z;
+    quaternion_json["w"] = quaternion_msgs.w;
+
+    std::string quaternion_json_str = Json::StyledWriter().write(quaternion_json);
+    return quaternion_json_str;
+}
+
 /**
  * @brief Function for convert geometry_msg::msg::Pose data into Json String
  * @author reidlo(naru5135@wavem.net)
@@ -99,14 +122,17 @@ ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::~GeometryMes
 std::string ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::convert_pose_to_json(const geometry_msgs::msg::Pose::SharedPtr pose_msgs_ptr) {
     Json::Value pose_json;
 
-    pose_json["position"]["x"] = pose_msgs_ptr->position.x;
-    pose_json["position"]["y"] = pose_msgs_ptr->position.y;
-    pose_json["position"]["z"] = pose_msgs_ptr->position.z;
+    // pose_json["position"]["x"] = pose_msgs_ptr->position.x;
+    // pose_json["position"]["y"] = pose_msgs_ptr->position.y;
+    // pose_json["position"]["z"] = pose_msgs_ptr->position.z;
 
-    pose_json["orientation"]["x"] = pose_msgs_ptr->orientation.x;
-    pose_json["orientation"]["y"] = pose_msgs_ptr->orientation.y;
-    pose_json["orientation"]["z"] = pose_msgs_ptr->orientation.z;
-    pose_json["orientation"]["w"] = pose_msgs_ptr->orientation.w;
+    // pose_json["orientation"]["x"] = pose_msgs_ptr->orientation.x;
+    // pose_json["orientation"]["y"] = pose_msgs_ptr->orientation.y;
+    // pose_json["orientation"]["z"] = pose_msgs_ptr->orientation.z;
+    // pose_json["orientation"]["w"] = pose_msgs_ptr->orientation.w;
+
+    pose_json["position"] = convert_point_to_json(pose_msgs_ptr->position);
+    pose_json["orientation"] = convert_quarternion_to_json(pose_msgs_ptr->orientation);
 
     std::string pose_json_str = Json::StyledWriter().write(pose_json);
     return pose_json_str;

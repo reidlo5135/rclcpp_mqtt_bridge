@@ -15,84 +15,6 @@
 #include "ros_mqtt_bridge/ros_mqtt_bridge.hpp"
 
 /**
- * @brief Constructor for initialize this class instance & ros publishers & message coverters
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.11
- * @param ros_node_ptr std::shared_ptr<rclcpp::Node>
- * @see rclcpp
-*/
-ros_mqtt_connections::to_ros::Bridge::Bridge(std::shared_ptr<rclcpp::Node> ros_node_ptr)
-: log_ros_mqtt_connections_to_ros(LOG_ROS_MQTT_CONNECTION_TO_ROS),
-ros_node_ptr_(ros_node_ptr),
-ros_default_qos_(ROS_DEFAULT_QOS) {
-    std_msgs_converter_ptr_ = new ros_message_converter::ros_std_msgs::StdMessageConverter();
-    geometry_msgs_converter_ptr_ = new ros_message_converter::ros_geometry_msgs::GeometryMessageConverter();
-
-    ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(
-        ros_topics::to_ros::chatter,
-        rclcpp::QoS(rclcpp::KeepLast(ros_default_qos_))
-    );
-    ros_cmd_vel_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::Twist>(
-        ros_topics::to_ros::cmd_vel,
-        rclcpp::QoS(rclcpp::KeepLast(ros_default_qos_))
-    );
-    ros_initial_pose_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
-        ros_topics::to_ros::initial_pose,
-        rclcpp::QoS(rclcpp::KeepLast(ros_default_qos_))
-    );
-}
-
-/**
- * @brief Virtual Destructor for this class instance & delete message coverters' pointers' instances
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.11
-*/
-ros_mqtt_connections::to_ros::Bridge::~Bridge() {
-    delete std_msgs_converter_ptr_;
-    delete geometry_msgs_converter_ptr_;
-}
-
-/**
- * @brief Function for publish to ros with mqtt subscription callback data that parsed from JSON String
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.11
- * @param mqtt_topic std::string&
- * @param mqtt_payload std::string&
- * @return void
-*/
-void ros_mqtt_connections::to_ros::Bridge::bridge(std::string& mqtt_topic, std::string& mqtt_payload) {
-    std::cout << log_ros_mqtt_connections_to_ros << " message arrived" << '\n';
-    std::cout << "\ttopic: '" << mqtt_topic << "'" << '\n';
-    std::cout << "\tpayload: '" << mqtt_payload << "'" << '\n';
-
-    if(mqtt_topic == mqtt_topics::from_rcs::chatter) {
-        try {
-            std::cout << log_ros_mqtt_connections_to_ros << " publish to " << mqtt_topic << '\n';
-            std_msgs::msg::String std_message = std_msgs_converter_ptr_->convert_json_to_chatter(mqtt_payload);
-            ros_chatter_publisher_ptr_->publish(std_message);
-        } catch(const std::exception& expn) {
-            std::cerr << log_ros_mqtt_connections_to_ros << " publish chatter error : " << expn.what() << '\n';
-        }
-    } else if(mqtt_topic == mqtt_topics::from_rcs::cmd_vel) {
-        try {
-            std::cout << log_ros_mqtt_connections_to_ros << " publish to " << mqtt_topic << '\n';
-            geometry_msgs::msg::Twist twist_message = geometry_msgs_converter_ptr_->convert_json_to_twist(mqtt_payload);
-            ros_cmd_vel_publisher_ptr_->publish(twist_message);
-        } catch(const std::exception& expn) {
-            std::cerr << log_ros_mqtt_connections_to_ros << " publish cmd_vel error : " << expn.what() << '\n';
-        }
-    } else if(mqtt_topic == mqtt_topics::from_rcs::initial_pose) {
-        try {
-            std::cout << log_ros_mqtt_connections_to_ros << " publish to " << mqtt_topic << '\n';
-            geometry_msgs::msg::PoseWithCovarianceStamped pose_with_covariance_stamped_message = geometry_msgs_converter_ptr_->convert_json_to_pose_with_covariance_stamped(mqtt_payload);
-            ros_initial_pose_publisher_ptr_->publish(pose_with_covariance_stamped_message);
-        } catch(const std::exception& expn) {
-            std::cerr << log_ros_mqtt_connections_to_ros << " publish initial_pose error : " << expn.what() << '\n';
-        }
-    }
-}
-
-/**
  * @brief Constructor for initialize this class instance & message coverters
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.11
@@ -102,17 +24,19 @@ void ros_mqtt_connections::to_ros::Bridge::bridge(std::string& mqtt_topic, std::
  * @see ros_mqtt_connections::to_ros::Bridge
  * @see mqtt::callback
 */
-ros_mqtt_connections::to_mqtt::Bridge::Bridge(std::shared_ptr<rclcpp::Node> ros_node_ptr, ros_mqtt_connections::to_ros::Bridge * ros_mqtt_connections_publisher_ptr)
-: log_ros_mqtt_connections_to_mqtt(LOG_ROS_MQTT_CONNECTION_TO_MQTT),
+ros_mqtt_connections::manager::Bridge::Bridge(std::shared_ptr<rclcpp::Node> ros_node_ptr)
+: log_ros_mqtt_bridge_(LOG_ROS_MQTT_BRIDGE),
+log_ros_mqtt_connections_to_mqtt_(LOG_ROS_MQTT_CONNECTION_TO_MQTT),
+log_ros_mqtt_connections_to_ros_(LOG_ROS_MQTT_CONNECTION_TO_ROS),
 ros_node_ptr_(ros_node_ptr),
 ros_default_qos_(ROS_DEFAULT_QOS),
-ros_mqtt_connections_publisher_ptr_(ros_mqtt_connections_publisher_ptr),
 mqtt_async_client_(MQTT_ADDRESS, MQTT_CLIENT_ID),
 mqtt_qos_(MQTT_QOS),
 mqtt_is_success_(mqtt::SUCCESS) {
     this->mqtt_connect();
     this->grant_mqtt_subscriptions();
-    this->bridge();
+    this->bridge_ros_to_mqtt();
+    this->bridge_mqtt_to_ros();
 
     std_msgs_converter_ptr_ = new ros_message_converter::ros_std_msgs::StdMessageConverter();
     geometry_msgs_converter_ptr_ = new ros_message_converter::ros_geometry_msgs::GeometryMessageConverter();
@@ -126,7 +50,7 @@ mqtt_is_success_(mqtt::SUCCESS) {
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.11
 */
-ros_mqtt_connections::to_mqtt::Bridge::~Bridge() {
+ros_mqtt_connections::manager::Bridge::~Bridge() {
     delete std_msgs_converter_ptr_;
     delete geometry_msgs_converter_ptr_;
     delete sensor_msgs_converter_ptr_;
@@ -143,20 +67,20 @@ ros_mqtt_connections::to_mqtt::Bridge::~Bridge() {
  * @see mqtt::connect_options
  * @see mqtt::exception
 */
-void ros_mqtt_connections::to_mqtt::Bridge::mqtt_connect() {
+void ros_mqtt_connections::manager::Bridge::mqtt_connect() {
     try {
         mqtt::connect_options mqtt_connect_opts;
         mqtt_connect_opts.set_clean_session(true);
         mqtt_async_client_.connect(mqtt_connect_opts)->wait_for(std::chrono::seconds(60));
         if(mqtt_async_client_.is_connected()) {
-            std::cout << log_ros_mqtt_connections_to_mqtt << " MQTT connection success" << '\n';
+            std::cout << log_ros_mqtt_bridge_ << " MQTT connection success" << '\n';
             mqtt_async_client_.set_callback(*this);
         } else {
-            std::cout << log_ros_mqtt_connections_to_mqtt << " MQTT connection failed... trying to reconnect" << '\n';
+            std::cout << log_ros_mqtt_bridge_ << " MQTT connection failed... trying to reconnect" << '\n';
             mqtt_async_client_.connect(mqtt_connect_opts)->wait_for(std::chrono::seconds(30));
         }
     } catch (const mqtt::exception& mqtt_expn) {
-        std::cerr << log_ros_mqtt_connections_to_mqtt << " connection error : " << mqtt_expn.what() << '\n';
+        std::cerr << log_ros_mqtt_bridge_ << " connection error : " << mqtt_expn.what() << '\n';
     }
 }
 
@@ -167,92 +91,12 @@ void ros_mqtt_connections::to_mqtt::Bridge::mqtt_connect() {
  * @return void
  * @see mqtt_subscribe
 */
-void ros_mqtt_connections::to_mqtt::Bridge::grant_mqtt_subscriptions() {
+void ros_mqtt_connections::manager::Bridge::grant_mqtt_subscriptions() {
     this->mqtt_subscribe(mqtt_topics::from_rcs::chatter);
     this->mqtt_subscribe(mqtt_topics::from_rcs::cmd_vel);
     this->mqtt_subscribe(mqtt_topics::from_rcs::initial_pose);
-    this->mqtt_subscribe(mqtt_topics::from_rcs::navigate_to_pose);
-    this->mqtt_subscribe(mqtt_topics::from_rcs::map_server_map);
-}
-
-/**
- * @brief Overrided function for handle cause when mqtt connection lost
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.11
- * @param mqtt_connection_lost_cause const std::string&
- * @return void
- * @see mqtt::callback
-*/
-void ros_mqtt_connections::to_mqtt::Bridge::connection_lost(const std::string& mqtt_connection_lost_cause) {
-    std::cerr << log_ros_mqtt_connections_to_mqtt << " connection lost : " << mqtt_connection_lost_cause << '\n';
-}
-
-/**
- * @brief Overrided function for handle message when mqtt subscription get callback mqtt message
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.11
- * @param mqtt_message mqtt::const_message_ptr
- * @return void
- * @see mqtt::callback
- * @see mqtt::const_message_ptr
- * @see ros_mqtt_connections::publisher::ros_chatter_publisher_ptr
-*/
-void ros_mqtt_connections::to_mqtt::Bridge::message_arrived(mqtt::const_message_ptr mqtt_message) {
-    std::string mqtt_topic = mqtt_message->get_topic();
-    std::string mqtt_payload = mqtt_message->to_string();
-    ros_mqtt_connections_publisher_ptr_->bridge(mqtt_topic, mqtt_payload);
-}
-
-/**
- * @brief Overrided function for handle delivered token
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.11
- * @param mqtt_delivered_token mqtt::delivery_token_ptr
- * @return void
- * @see mqtt::callback
-*/
-void ros_mqtt_connections::to_mqtt::Bridge::delivery_complete(mqtt::delivery_token_ptr mqtt_delivered_token) {
-	std::cout << log_ros_mqtt_connections_to_mqtt << " delivery complete with [" << mqtt_delivered_token <<  "] \n";
-}
-
-/**
- * @brief Function for mqtt publish into mqtt Broker
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.11
- * @param topic char *
- * @param payload std::string
- * @return void
- * @see mqtt::message_ptr
- * @see mqtt::exception
-*/
-void ros_mqtt_connections::to_mqtt::Bridge::mqtt_publish(const char * mqtt_topic, std::string mqtt_payload) {
-	try {
-		mqtt::message_ptr mqtt_publish_msg = mqtt::make_message(mqtt_topic, mqtt_payload);
-		mqtt_publish_msg->set_qos(mqtt_qos_);
-		auto delivery_token = mqtt_async_client_.publish(mqtt_publish_msg);
-        delivery_token->wait();
-        if (delivery_token->get_return_code() != mqtt_is_success_) {
-            std::cerr << log_ros_mqtt_connections_to_mqtt << " publishing error : " << delivery_token->get_return_code() << '\n';
-        }
-	} catch (const mqtt::exception& mqtt_expn) {
-		std::cerr << log_ros_mqtt_connections_to_mqtt << " publishing error : " << mqtt_expn.what() << '\n';
-	}
-}
-
-/**
- * @brief Function for create mqtt subscription from mqtt broker
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.11
- * @param topic char *
- * @see mqtt::exception
-*/
-void ros_mqtt_connections::to_mqtt::Bridge::mqtt_subscribe(const char * mqtt_topic) {
-	try {
-		std::cout << log_ros_mqtt_connections_to_mqtt << " grant subscription with '" << mqtt_topic << "' " << '\n';
-		mqtt_async_client_.subscribe(mqtt_topic, mqtt_qos_);
-	} catch (const mqtt::exception& mqtt_expn) {
-		std::cerr << log_ros_mqtt_connections_to_mqtt << " grant subscription error : " << mqtt_expn.what() << '\n';
-	}
+    // this->mqtt_subscribe(mqtt_topics::from_rcs::navigate_to_pose);
+    // this->mqtt_subscribe(mqtt_topics::from_rcs::map_server_map);
 }
 
 /**
@@ -264,7 +108,7 @@ void ros_mqtt_connections::to_mqtt::Bridge::mqtt_subscribe(const char * mqtt_top
  * @see ros_mqtt_connections
  * @see ros_mqtt_topics
 */
-void ros_mqtt_connections::to_mqtt::Bridge::bridge() {
+void ros_mqtt_connections::manager::Bridge::bridge_ros_to_mqtt() {
     ros_chatter_subscription_ptr_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
         ros_topics::from_ros::chatter,
         rclcpp::QoS(rclcpp::KeepLast(ros_default_qos_)),
@@ -324,6 +168,147 @@ void ros_mqtt_connections::to_mqtt::Bridge::bridge() {
 }
 
 /**
+ * @brief Function for initialize ros publishers
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.12
+ * @return void
+*/
+void ros_mqtt_connections::manager::Bridge::bridge_mqtt_to_ros() {
+    ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(
+        ros_topics::to_ros::chatter,
+        rclcpp::QoS(ros_default_qos_)
+    );
+    ros_cmd_vel_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::Twist>(
+        ros_topics::to_ros::cmd_vel,
+        rclcpp::QoS(ros_default_qos_)
+    );
+    ros_initial_pose_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
+        ros_topics::to_ros::initial_pose,
+        rclcpp::QoS(ros_default_qos_)
+    );
+}
+
+/**
+ * @brief Function for publish to ros with mqtt subscription callback data that parsed from JSON String
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.11
+ * @param mqtt_topic std::string&
+ * @param mqtt_payload std::string&
+ * @return void
+*/
+void ros_mqtt_connections::manager::Bridge::bridge_mqtt_to_ros(std::string& mqtt_topic, std::string& mqtt_payload) {
+    std::cout << "[MQTT to ROS] message arrived" << '\n';
+    std::cout << "\ttopic: '" << mqtt_topic << "'" << '\n';
+    std::cout << "\tpayload: '" << mqtt_payload << "'" << '\n';
+
+    if(mqtt_topic == mqtt_topics::from_rcs::chatter) {
+        try {
+            std::cout << "[MQTT to ROS] publish to " << mqtt_topic << '\n';
+            std_msgs::msg::String std_message = std_msgs_converter_ptr_->convert_json_to_chatter(mqtt_payload);
+            ros_chatter_publisher_ptr_->publish(std_message);
+        } catch(const std::exception& expn) {
+            std::cerr << "[MQTT to ROS] publish chatter error : " << expn.what() << '\n';
+        }
+    } else if(mqtt_topic == mqtt_topics::from_rcs::cmd_vel) {
+        try {
+            std::cout << "[MQTT to ROS] publish to " << mqtt_topic << '\n';
+            geometry_msgs::msg::Twist twist_message = geometry_msgs_converter_ptr_->convert_json_to_twist(mqtt_payload);
+            ros_cmd_vel_publisher_ptr_->publish(twist_message);
+        } catch(const std::exception& expn) {
+            std::cerr << "[MQTT to ROS] publish cmd_vel error : " << expn.what() << '\n';
+        }
+    } else if(mqtt_topic == mqtt_topics::from_rcs::initial_pose) {
+        try {
+            std::cout << "[MQTT to ROS] publish to " << mqtt_topic << '\n';
+            geometry_msgs::msg::PoseWithCovarianceStamped pose_with_covariance_stamped_message = geometry_msgs_converter_ptr_->convert_json_to_pose_with_covariance_stamped(mqtt_payload);
+            ros_initial_pose_publisher_ptr_->publish(pose_with_covariance_stamped_message);
+        } catch(const std::exception& expn) {
+            std::cerr << "[MQTT to ROS] publish initial_pose error : " << expn.what() << '\n';
+        }
+    }
+}
+
+/**
+ * @brief Overrided function for handle cause when mqtt connection lost
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.11
+ * @param mqtt_connection_lost_cause const std::string&
+ * @return void
+ * @see mqtt::callback
+*/
+void ros_mqtt_connections::manager::Bridge::connection_lost(const std::string& mqtt_connection_lost_cause) {
+    std::cerr << log_ros_mqtt_bridge_ << " connection lost : " << mqtt_connection_lost_cause << '\n';
+}
+
+/**
+ * @brief Overrided function for handle message when mqtt subscription get callback mqtt message
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.11
+ * @param mqtt_message mqtt::const_message_ptr
+ * @return void
+ * @see mqtt::callback
+ * @see mqtt::const_message_ptr
+ * @see ros_mqtt_connections::publisher::ros_chatter_publisher_ptr
+*/
+void ros_mqtt_connections::manager::Bridge::message_arrived(mqtt::const_message_ptr mqtt_message) {
+    std::string mqtt_topic = mqtt_message->get_topic();
+    std::string mqtt_payload = mqtt_message->to_string();
+    this->bridge_mqtt_to_ros(mqtt_topic, mqtt_payload);
+}
+
+/**
+ * @brief Overrided function for handle delivered token
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.11
+ * @param mqtt_delivered_token mqtt::delivery_token_ptr
+ * @return void
+ * @see mqtt::callback
+*/
+void ros_mqtt_connections::manager::Bridge::delivery_complete(mqtt::delivery_token_ptr mqtt_delivered_token) {
+	std::cout << log_ros_mqtt_bridge_ << " delivery complete with [" << mqtt_delivered_token <<  "] \n";
+}
+
+/**
+ * @brief Function for mqtt publish into mqtt Broker
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.11
+ * @param topic char *
+ * @param payload std::string
+ * @return void
+ * @see mqtt::message_ptr
+ * @see mqtt::exception
+*/
+void ros_mqtt_connections::manager::Bridge::mqtt_publish(const char * mqtt_topic, std::string mqtt_payload) {
+	try {
+		mqtt::message_ptr mqtt_publish_msg = mqtt::make_message(mqtt_topic, mqtt_payload);
+		mqtt_publish_msg->set_qos(mqtt_qos_);
+		auto delivery_token = mqtt_async_client_.publish(mqtt_publish_msg);
+        delivery_token->wait();
+        if (delivery_token->get_return_code() != mqtt_is_success_) {
+            std::cerr << log_ros_mqtt_connections_to_mqtt_ << " publishing error : " << delivery_token->get_return_code() << '\n';
+        }
+	} catch (const mqtt::exception& mqtt_expn) {
+		std::cerr << log_ros_mqtt_connections_to_mqtt_ << " publishing error : " << mqtt_expn.what() << '\n';
+	}
+}
+
+/**
+ * @brief Function for create mqtt subscription from mqtt broker
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.11
+ * @param topic char *
+ * @see mqtt::exception
+*/
+void ros_mqtt_connections::manager::Bridge::mqtt_subscribe(const char * mqtt_topic) {
+	try {
+		std::cout << log_ros_mqtt_connections_to_ros_ << " grant subscription with '" << mqtt_topic << "' " << '\n';
+		mqtt_async_client_.subscribe(mqtt_topic, mqtt_qos_);
+	} catch (const mqtt::exception& mqtt_expn) {
+		std::cerr << log_ros_mqtt_connections_to_ros_ << " grant subscription error : " << mqtt_expn.what() << '\n';
+	}
+}
+
+/**
  * @brief Constructor for initialize this class instance & create rclcpp::Node named with ros_mqtt_bridge
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.11
@@ -331,11 +316,9 @@ void ros_mqtt_connections::to_mqtt::Bridge::bridge() {
  * @see ros_mqtt_connections
 */
 RosMqttBridge::RosMqttBridge()
-: Node("ros_mqtt_bridge"),
-log_ros_mqtt_bridge_(LOG_ROS_MQTT_BRIDGE) {
+: Node("ros_mqtt_bridge") {
     ros_node_ptr_ = std::shared_ptr<rclcpp::Node>(this, [](rclcpp::Node*){});
-    ros_mqtt_connections_to_ros_bridge_ptr_ = new ros_mqtt_connections::to_ros::Bridge(ros_node_ptr_);
-    ros_mqtt_conenction_to_mqtt_bridge_ptr_ = new ros_mqtt_connections::to_mqtt::Bridge(ros_node_ptr_, ros_mqtt_connections_to_ros_bridge_ptr_);
+    ros_mqtt_conenctions_to_mqtt_bridge_ptr_ = new ros_mqtt_connections::manager::Bridge(ros_node_ptr_);
 }
 
 /**
@@ -344,8 +327,7 @@ log_ros_mqtt_bridge_(LOG_ROS_MQTT_BRIDGE) {
  * @date 23.05.11
 */
 RosMqttBridge::~RosMqttBridge() {
-    delete ros_mqtt_connections_to_ros_bridge_ptr_;
-    delete ros_mqtt_connections_to_ros_bridge_ptr_;
+    delete ros_mqtt_conenctions_to_mqtt_bridge_ptr_;
 }
 
 /**

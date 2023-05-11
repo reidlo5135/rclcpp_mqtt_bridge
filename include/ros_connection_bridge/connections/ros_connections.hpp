@@ -84,21 +84,7 @@
  * @see rclcpp::Subscription
 */
 namespace ros_connections {
-    /**
-     * @brief namespace for declare this node to ros mqtt bridge node connections
-     * @author reidlo(naru5135@wavem.net)
-     * @date 23.05.11
-     * @see rclcpp::Publisher
-     * @see rclcpp::Subscription
-    */
     namespace ros_connections_to_mqtt {
-        /**
-         * @brief Class for this node to ros mqtt bridge node connections
-         * @author reidlo(naru5135@wavem.net)
-         * @date 23.05.11
-         * @see rclcpp::Publisher
-         * @see rclcpp::Subscription
-        */
         class Bridge {
             private :
                 std::shared_ptr<rclcpp::Node> ros_node_ptr_;
@@ -127,21 +113,7 @@ namespace ros_connections {
                 virtual ~Bridge();
         };
     }
-    /**
-     * @brief namespace for declare ros mqtt bridge node to this node connections
-     * @author reidlo(naru5135@wavem.net)
-     * @date 23.05.11
-     * @see rclcpp::Publisher
-     * @see rclcpp::Subscription
-    */
     namespace ros_connections_from_mqtt {
-         /**
-         * @brief Class for declare ros mqtt bridge node to this node connections
-         * @author reidlo(naru5135@wavem.net)
-         * @date 23.05.11
-         * @see rclcpp::Publisher
-         * @see rclcpp::Subscription
-        */
         class Bridge {
             private :
                 std::shared_ptr<rclcpp::Node> ros_node_ptr_;

@@ -1,3 +1,4 @@
+
 // Copyright [2023] [wavem-reidlo]
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,9 +39,6 @@
 #include "rclcpp/rclcpp.hpp"
 #include "ros_mqtt_bridge/connections/ros_mqtt_connections.hpp"
 
-// define common log for ros-mqtt-bridge
-#define LOG_ROS_MQTT_BRIDGE "[ROS-MQTT-BRIDGE]"
-
 /**
  * @brief Class for initialize rclcpp::Node & ros_mqtt_connections::to_ros::Bridge / ros_mqtt_connections::to_mqtt::Bridge classes' instances
  * @author reidlo(naru5135@wavem.net)
@@ -49,10 +47,8 @@
 */
 class RosMqttBridge : public rclcpp::Node {
     private :
-        const std::string& log_ros_mqtt_bridge_;
         std::shared_ptr<rclcpp::Node> ros_node_ptr_;
-        ros_mqtt_connections::to_ros::Bridge * ros_mqtt_connections_to_ros_bridge_ptr_;
-        ros_mqtt_connections::to_mqtt::Bridge * ros_mqtt_conenction_to_mqtt_bridge_ptr_;
+        ros_mqtt_connections::manager::Bridge * ros_mqtt_conenctions_to_mqtt_bridge_ptr_;
     public :
         RosMqttBridge();
         virtual ~RosMqttBridge();
