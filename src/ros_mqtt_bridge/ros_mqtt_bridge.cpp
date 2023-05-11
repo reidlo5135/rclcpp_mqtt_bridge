@@ -36,6 +36,7 @@ mqtt_is_success_(mqtt::SUCCESS) {
     this->mqtt_connect();
     this->grant_mqtt_subscriptions();
     this->bridge_ros_to_mqtt();
+    this->bridge_mqtt_to_ros();
 
     std_msgs_converter_ptr_ = new ros_message_converter::ros_std_msgs::StdMessageConverter();
     geometry_msgs_converter_ptr_ = new ros_message_converter::ros_geometry_msgs::GeometryMessageConverter();
@@ -167,6 +168,27 @@ void ros_mqtt_connections::manager::Bridge::bridge_ros_to_mqtt() {
 }
 
 /**
+ * @brief Function for initialize ros publishers
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.12
+ * @return void
+*/
+void ros_mqtt_connections::manager::Bridge::bridge_mqtt_to_ros() {
+    ros_chatter_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(
+        ros_topics::to_ros::chatter,
+        rclcpp::QoS(ros_default_qos_)
+    );
+    ros_cmd_vel_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::Twist>(
+        ros_topics::to_ros::cmd_vel,
+        rclcpp::QoS(ros_default_qos_)
+    );
+    ros_initial_pose_publisher_ptr_ = ros_node_ptr_->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
+        ros_topics::to_ros::initial_pose,
+        rclcpp::QoS(ros_default_qos_)
+    );
+}
+
+/**
  * @brief Function for publish to ros with mqtt subscription callback data that parsed from JSON String
  * @author reidlo(naru5135@wavem.net)
  * @date 23.05.11
@@ -175,33 +197,33 @@ void ros_mqtt_connections::manager::Bridge::bridge_ros_to_mqtt() {
  * @return void
 */
 void ros_mqtt_connections::manager::Bridge::bridge_mqtt_to_ros(std::string& mqtt_topic, std::string& mqtt_payload) {
-    std::cout << log_ros_mqtt_connections_to_ros_ << " message arrived" << '\n';
+    std::cout << "[MQTT to ROS] message arrived" << '\n';
     std::cout << "\ttopic: '" << mqtt_topic << "'" << '\n';
     std::cout << "\tpayload: '" << mqtt_payload << "'" << '\n';
 
     if(mqtt_topic == mqtt_topics::from_rcs::chatter) {
         try {
-            std::cout << log_ros_mqtt_connections_to_ros_ << " publish to " << mqtt_topic << '\n';
+            std::cout << "[MQTT to ROS] publish to " << mqtt_topic << '\n';
             std_msgs::msg::String std_message = std_msgs_converter_ptr_->convert_json_to_chatter(mqtt_payload);
             ros_chatter_publisher_ptr_->publish(std_message);
         } catch(const std::exception& expn) {
-            std::cerr << log_ros_mqtt_connections_to_ros_ << " publish chatter error : " << expn.what() << '\n';
+            std::cerr << "[MQTT to ROS] publish chatter error : " << expn.what() << '\n';
         }
     } else if(mqtt_topic == mqtt_topics::from_rcs::cmd_vel) {
         try {
-            std::cout << log_ros_mqtt_connections_to_ros_ << " publish to " << mqtt_topic << '\n';
+            std::cout << "[MQTT to ROS] publish to " << mqtt_topic << '\n';
             geometry_msgs::msg::Twist twist_message = geometry_msgs_converter_ptr_->convert_json_to_twist(mqtt_payload);
             ros_cmd_vel_publisher_ptr_->publish(twist_message);
         } catch(const std::exception& expn) {
-            std::cerr << log_ros_mqtt_connections_to_ros_ << " publish cmd_vel error : " << expn.what() << '\n';
+            std::cerr << "[MQTT to ROS] publish cmd_vel error : " << expn.what() << '\n';
         }
     } else if(mqtt_topic == mqtt_topics::from_rcs::initial_pose) {
         try {
-            std::cout << log_ros_mqtt_connections_to_ros_ << " publish to " << mqtt_topic << '\n';
+            std::cout << "[MQTT to ROS] publish to " << mqtt_topic << '\n';
             geometry_msgs::msg::PoseWithCovarianceStamped pose_with_covariance_stamped_message = geometry_msgs_converter_ptr_->convert_json_to_pose_with_covariance_stamped(mqtt_payload);
             ros_initial_pose_publisher_ptr_->publish(pose_with_covariance_stamped_message);
         } catch(const std::exception& expn) {
-            std::cerr << log_ros_mqtt_connections_to_ros_ << " publish initial_pose error : " << expn.what() << '\n';
+            std::cerr << "[MQTT to ROS] publish initial_pose error : " << expn.what() << '\n';
         }
     }
 }

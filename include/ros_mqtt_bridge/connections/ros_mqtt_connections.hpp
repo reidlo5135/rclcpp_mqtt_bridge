@@ -135,6 +135,7 @@ namespace ros_mqtt_connections {
                 void mqtt_publish(const char * mqtt_topic, std::string mqtt_payload);
                 void mqtt_subscribe(const char * topic);
                 void bridge_ros_to_mqtt();
+                void bridge_mqtt_to_ros();
                 void bridge_mqtt_to_ros(std::string& mqtt_topic, std::string& mqtt_payload);
             public :
                 Bridge(std::shared_ptr<rclcpp::Node> ros_node_ptr);
