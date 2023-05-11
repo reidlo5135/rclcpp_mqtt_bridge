@@ -73,53 +73,92 @@
 */
 #include "tf2_msgs/msg/tf_message.hpp"
 
-/**
- * @brief namespace for declare ros connections to mqtt
- * @author reidlo(naru5135@wavem.net)
- * @date 23.05.09
- * @see rclcpp::Publisher
- * @see rclcpp::Subscription
-*/
-namespace ros_connections_to_mqtt {
-    namespace publisher {
-        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_chatter_publisher_ptr_;
-        rclcpp::Publisher<geometry_msgs::msg::Pose>::SharedPtr ros_robot_pose_publisher_ptr_;
-        rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr ros_scan_publisher_ptr_;
-        rclcpp::Publisher<tf2_msgs::msg::TFMessage>::SharedPtr ros_tf_publisher_ptr_;
-        rclcpp::Publisher<tf2_msgs::msg::TFMessage>::SharedPtr ros_tf_static_publisher_ptr_;
-        rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr ros_odom_publisher_ptr_;
-        rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr ros_global_plan_publisher_ptr_;
-        rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr ros_local_plan_publisher_ptr_;
-    }
-    namespace subscription {
-        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
-        rclcpp::Subscription<geometry_msgs::msg::Pose>::SharedPtr ros_robot_pose_subscription_ptr_;
-        rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr ros_scan_subscription_ptr_;
-        rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr ros_tf_subscription_ptr_;
-        rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr ros_tf_static_subscription_ptr_;
-        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_ptr_;
-        rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_global_plan_subscription_ptr_;
-        rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_local_plan_subscription_ptr_;
-    }
-}
+// define ros default qos
+#define ROS_DEFAULT_QOS 10
 
 /**
- * @brief namespace for declare ros connections from mqtt
+ * @brief namespace for declare ros - mqtt connections
  * @author reidlo(naru5135@wavem.net)
- * @date 23.05.09
+ * @date 23.05.11
  * @see rclcpp::Publisher
  * @see rclcpp::Subscription
 */
-namespace ros_connections_from_mqtt {
-    namespace publisher {
-        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_chatter_publisher_ptr_;
-        rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr ros_cmd_vel_publisher_ptr_;
-        rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr ros_initial_pose_publisher_ptr_;
+namespace ros_connections {
+    /**
+     * @brief namespace for declare this node to ros mqtt bridge node connections
+     * @author reidlo(naru5135@wavem.net)
+     * @date 23.05.11
+     * @see rclcpp::Publisher
+     * @see rclcpp::Subscription
+    */
+    namespace ros_connections_to_mqtt {
+        /**
+         * @brief Class for this node to ros mqtt bridge node connections
+         * @author reidlo(naru5135@wavem.net)
+         * @date 23.05.11
+         * @see rclcpp::Publisher
+         * @see rclcpp::Subscription
+        */
+        class Bridge {
+            private :
+                std::shared_ptr<rclcpp::Node> ros_node_ptr_;
+                const int ros_default_qos_;
+                rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_chatter_publisher_ptr_;
+                rclcpp::Publisher<geometry_msgs::msg::Pose>::SharedPtr ros_robot_pose_publisher_ptr_;
+                rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr ros_scan_publisher_ptr_;
+                rclcpp::Publisher<tf2_msgs::msg::TFMessage>::SharedPtr ros_tf_publisher_ptr_;
+                rclcpp::Publisher<tf2_msgs::msg::TFMessage>::SharedPtr ros_tf_static_publisher_ptr_;
+                rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr ros_odom_publisher_ptr_;
+                rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr ros_global_plan_publisher_ptr_;
+                rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr ros_local_plan_publisher_ptr_;
+                rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
+                rclcpp::Subscription<geometry_msgs::msg::Pose>::SharedPtr ros_robot_pose_subscription_ptr_;
+                rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr ros_scan_subscription_ptr_;
+                rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr ros_tf_subscription_ptr_;
+                rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr ros_tf_static_subscription_ptr_;
+                rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_ptr_;
+                rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_global_plan_subscription_ptr_;
+                rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_local_plan_subscription_ptr_;
+                void initialize_publishers();
+                void initialize_subscriptions();
+                void initialize_bridge();
+            public :
+                Bridge(std::shared_ptr<rclcpp::Node> ros_node_ptr);
+                virtual ~Bridge();
+        };
     }
-    namespace subscription {
-        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
-        rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr ros_cmd_vel_subscription_ptr_;
-        rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr ros_initial_pose_subscription_ptr_;
+    /**
+     * @brief namespace for declare ros mqtt bridge node to this node connections
+     * @author reidlo(naru5135@wavem.net)
+     * @date 23.05.11
+     * @see rclcpp::Publisher
+     * @see rclcpp::Subscription
+    */
+    namespace ros_connections_from_mqtt {
+         /**
+         * @brief Class for declare ros mqtt bridge node to this node connections
+         * @author reidlo(naru5135@wavem.net)
+         * @date 23.05.11
+         * @see rclcpp::Publisher
+         * @see rclcpp::Subscription
+        */
+        class Bridge {
+            private :
+                std::shared_ptr<rclcpp::Node> ros_node_ptr_;
+                const int ros_default_qos_;
+                rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_chatter_publisher_ptr_;
+                rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr ros_cmd_vel_publisher_ptr_;
+                rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr ros_initial_pose_publisher_ptr_;
+                rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
+                rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr ros_cmd_vel_subscription_ptr_;
+                rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr ros_initial_pose_subscription_ptr_;
+                void initialize_publishers();
+                void initialize_subscriptions();
+                void initialize_bridge();
+            public :
+                Bridge(std::shared_ptr<rclcpp::Node> ros_node_ptr);
+                virtual ~Bridge();
+        };
     }
 }
 
