@@ -101,6 +101,7 @@ namespace ros_message_converter {
                 Json::Value convert_point_to_json(const geometry_msgs::msg::Point point_msgs);
                 Json::Value convert_quaternion_to_json(const geometry_msgs::msg::Quaternion quaternion_msgs);
                 std::string convert_pose_to_json(const geometry_msgs::msg::Pose::SharedPtr pose_msgs_ptr);
+                Json::Value convert_pose_to_json(const geometry_msgs::msg::Pose pose_msgs);
                 Json::Value convert_vector_to_json(const geometry_msgs::msg::Vector3 vector_msgs);
                 std::string convert_twist_to_json(const geometry_msgs::msg::Twist::SharedPtr twistmsgs_ptr);
                 geometry_msgs::msg::Vector3 convert_json_to_vector(Json::Value raw_vector_data);
@@ -131,6 +132,8 @@ namespace ros_message_converter {
                 virtual ~NavMessageConverter();
                 std::string convert_odom_to_json(const nav_msgs::msg::Odometry::SharedPtr odom_msgs_ptr);
                 std::string convert_path_to_json(const nav_msgs::msg::Path::SharedPtr path_msgs_ptr);
+                Json::Value convert_meta_data_to_json(const nav_msgs::msg::MapMetaData map_meta_data_msgs);
+                std::string convert_map_response_to_json(const nav_msgs::srv::GetMap_Response::SharedPtr map_response_msgs_ptr);
         };
     }
     namespace ros_tf2_msgs {

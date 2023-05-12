@@ -209,6 +209,19 @@ std::string ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::
     return pose_json_str;
 }
 
+Json::Value ros_message_converter::ros_geometry_msgs::GeometryMessageConverter::convert_pose_to_json(const geometry_msgs::msg::Pose pose_msgs) {
+    Json::Value pose_json;
+
+    try {
+        pose_json["position"] = convert_point_to_json(pose_msgs.position);
+        pose_json["orientation"] = convert_quaternion_to_json(pose_msgs.orientation);
+    } catch(const Json::Exception& json_expn) {
+        std::cerr << "[RosMessageConverter] parsing geometry_msgs::msg::Pose::SharedPtr to json err : " << json_expn.what() << '\n';
+    }
+
+    return pose_json;
+}
+
 /**
  * @brief Function for convert ros geometry_msgs::msg::Vector3 into Json::Value
  * @author reidlo(naru5135@wavem.net)
@@ -573,6 +586,53 @@ std::string ros_message_converter::ros_nav_msgs::NavMessageConverter::convert_pa
 
     std::string path_json_str = Json::StyledWriter().write(path_json);
     return path_json_str;
+}
+
+/**
+ * @brief Function for convert ros message nav_msgs::msg::MapMetaData data into Json::Value
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.12
+ * @param map_meta_data_msgs const nav_msgs::msg::MapMetaData
+ * @return Json::Value
+*/
+Json::Value ros_message_converter::ros_nav_msgs::NavMessageConverter::convert_meta_data_to_json(const nav_msgs::msg::MapMetaData map_meta_data_msgs) {
+    Json::Value map_meta_data_json;
+
+    try {
+        map_meta_data_json["width"] = map_meta_data_msgs.width;
+        map_meta_data_json["height"] = map_meta_data_msgs.height;
+        map_meta_data_json["origin"] = geometry_message_converter_->convert_pose_to_json(map_meta_data_msgs.origin);
+        map_meta_data_json["resolution"] = map_meta_data_msgs.resolution;
+        map_meta_data_json["map_load_time"]["sec"] = map_meta_data_msgs.map_load_time.sec;
+        map_meta_data_json["map_load_time"]["nanosec"] = map_meta_data_msgs.map_load_time.nanosec;
+    } catch(const Json::Exception& json_expn) {
+        std::cerr << "[RosMessageConverter] parsing occupancy grid to json err : " << json_expn.what() << '\n';
+    }
+
+    return map_meta_data_json;
+}
+
+/**
+ * @brief Function for convert ros message nav_msgs::srv::GetMap_Response data into std::string(JSON style)
+ * @author reidlo(naru5135@wavem.net)
+ * @date 23.05.12
+ * @param map_response_msgs_ptr const nav_msgs::srv::GetMap_Response::SharedPtr
+ * @return std::string
+*/
+std::string ros_message_converter::ros_nav_msgs::NavMessageConverter::convert_map_response_to_json(const nav_msgs::srv::GetMap_Response::SharedPtr map_response_msgs_ptr) {
+    Json::Value map_response_json;
+
+    try {
+        map_response_json["header"] = std_message_converter_->convert_header_to_json(map_response_msgs_ptr->map.header);
+        map_response_json["info"] = convert_meta_data_to_json(map_response_msgs_ptr->map.info);
+        
+        std::vector<int8_t> map_data_vec = map_response_msgs_ptr->map.data;
+        int8_t map_data_arr[map_data_vec.size()];
+        std::copy(map_data_vec.begin(), map_data_vec.end(), map_data_arr);
+        map_response_json["data"] = map_data_arr;
+    } catch(const Json::Exception& json_expn) {
+        std::cerr << "[RosMessageConverter] parsing map response to json err : " << json_expn.what() << '\n';
+    }
 }
 
 /**
