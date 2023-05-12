@@ -116,6 +116,7 @@ namespace ros_mqtt_connections {
                 rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_chatter_publisher_ptr_;
                 rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr ros_cmd_vel_publisher_ptr_;
                 rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr ros_initial_pose_publisher_ptr_;
+                rclcpp::Client<nav_msgs::srv::GetMap>::SharedPtr ros_map_server_map_service_client_ptr_;
                 rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
                 rclcpp::Subscription<geometry_msgs::msg::Pose>::SharedPtr ros_robot_pose_subscription_ptr_;
                 rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr ros_scan_subscription_ptr_;
@@ -155,7 +156,7 @@ namespace ros_topics {
         const char * cmd_vel = "mqtt_bridge/cmd_vel";
         const char * initial_pose = "mqtt_bridge/initial_pose";
         const char * navigate_to_pose = "mqtt_bridge/navigate_to_pose";
-        const char * map_server_map = "mqtt_bridge/map_server/map";
+        const char * map_server_map = "/map_server/map";
     }
     namespace from_ros {
         const char * chatter = "/chatter";
