@@ -81,29 +81,40 @@
 */
 namespace ros_message_converter {
     namespace ros_std_msgs {
-        class StdMessageConverter {
+        class StdMessageConverter {                
             public :
                 StdMessageConverter();
                 virtual ~StdMessageConverter();
+                Json::Value convert_header_to_json(const std_msgs::msg::Header header_msgs);
+                std_msgs::msg::Header convert_json_to_header(Json::Value raw_header_data);
                 std::string convert_chatter_to_json(const std_msgs::msg::String::SharedPtr chatter_msgs_ptr);
                 std_msgs::msg::String convert_json_to_chatter(std::string& raw_std_string_data);
         };
     }
     namespace ros_geometry_msgs {
         class GeometryMessageConverter {
+            private :
+                ros_message_converter::ros_std_msgs::StdMessageConverter * std_message_converter_;
             public :
                 GeometryMessageConverter();
                 virtual ~GeometryMessageConverter();
-                std::string convert_point_to_json(const geometry_msgs::msg::Point point_msgs);
-                std::string convert_quarternion_to_json(const geometry_msgs::msg::Quaternion quaternion_msgs);
+                Json::Value convert_point_to_json(const geometry_msgs::msg::Point point_msgs);
+                Json::Value convert_quaternion_to_json(const geometry_msgs::msg::Quaternion quaternion_msgs);
                 std::string convert_pose_to_json(const geometry_msgs::msg::Pose::SharedPtr pose_msgs_ptr);
-                std::string convert_twist_to_json(const geometry_msgs::msg::Twist::SharedPtr twist_msgs_ptr);
+                Json::Value convert_vector_to_json(const geometry_msgs::msg::Vector3 vector_msgs);
+                std::string convert_twist_to_json(const geometry_msgs::msg::Twist::SharedPtr twistmsgs_ptr);
+                geometry_msgs::msg::Vector3 convert_json_to_vector(Json::Value raw_vector_data);
                 geometry_msgs::msg::Twist convert_json_to_twist(std::string& raw_twist_data);
+                geometry_msgs::msg::Point convert_json_to_point(Json::Value raw_point_data);
+                geometry_msgs::msg::Quaternion convert_json_to_quaternion(Json::Value raw_quaternion_data);
+                std::array<double, 36UL> convert_json_to_pose_covariance(Json::Value raw_pose_data);
                 geometry_msgs::msg::PoseWithCovarianceStamped convert_json_to_pose_with_covariance_stamped(std::string& raw_pose_with_covariance_stamped_data);
         };
     }
     namespace ros_sensor_msgs {
         class SensorMessageConverter {
+            private :
+                ros_message_converter::ros_std_msgs::StdMessageConverter * std_message_converter_;
             public :
                 SensorMessageConverter();
                 virtual ~SensorMessageConverter();
@@ -112,6 +123,9 @@ namespace ros_message_converter {
     }
     namespace ros_nav_msgs {
         class NavMessageConverter {
+            private :
+                ros_message_converter::ros_std_msgs::StdMessageConverter * std_message_converter_;
+                ros_message_converter::ros_geometry_msgs::GeometryMessageConverter * geometry_message_converter_;
             public:
                 NavMessageConverter();
                 virtual ~NavMessageConverter();
@@ -121,6 +135,9 @@ namespace ros_message_converter {
     }
     namespace ros_tf2_msgs {
         class Tf2MessageConverter {
+            private :
+                ros_message_converter::ros_std_msgs::StdMessageConverter * std_message_converter_;
+                ros_message_converter::ros_geometry_msgs::GeometryMessageConverter * geometry_message_converter_;
             public :
                 Tf2MessageConverter();
                 virtual ~Tf2MessageConverter();
