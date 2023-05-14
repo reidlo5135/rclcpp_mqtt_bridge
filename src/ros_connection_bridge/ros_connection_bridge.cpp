@@ -36,6 +36,12 @@ ros_connections::ros_connections_to_mqtt::Bridge::~Bridge() {
 
 }
 
+void ros_connections::ros_connections_to_mqtt::Bridge::handle_add_two_ints_service(const std::shared_ptr<rmw_request_id_t> request_header, const std::shared_ptr<example_interfaces::srv::AddTwoInts::Request> request, const std::shared_ptr<example_interfaces::srv::AddTwoInts::Response> response) {
+    (void)request_header;
+    std::cout << "[ROS to MQTT] /add_two_ints service request : " << request->a << ", " << request->b << '\n';
+    response->sum = request->a + request->b;
+}
+
 /**
  * @brief Function for initialize ros publishers
  * @author reidlo(naru5135@wavem.net)
@@ -114,6 +120,15 @@ void ros_connections::ros_connections_to_mqtt::Bridge::initialize_publishers() {
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
         std::cerr << "[ROS to MQTT] /local_plan bridge err : " << rcl_expn.what() << '\n';
+    }
+
+    try {
+        ros_add_two_ints_service_server_ptr_ = ros_node_ptr_->create_service<example_interfaces::srv::AddTwoInts>(
+            "add_two_ints_service",
+            handle_add_two_ints_service
+        );
+    } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
+        std::cerr << "[ROS to MQTT] /add_two_ints bridge err : " << rcl_expn.what() << '\n';
     }
 }
 

@@ -95,6 +95,7 @@ void ros_mqtt_connections::manager::Bridge::grant_mqtt_subscriptions() {
     this->mqtt_subscribe(mqtt_topics::from_rcs::chatter);
     this->mqtt_subscribe(mqtt_topics::from_rcs::cmd_vel);
     this->mqtt_subscribe(mqtt_topics::from_rcs::initial_pose);
+    this->mqtt_subscribe(mqtt_topics::from_rcs::add_two_ints);
     // this->mqtt_subscribe(mqtt_topics::from_rcs::navigate_to_pose);
     // this->mqtt_subscribe(mqtt_topics::from_rcs::map_server_map);
 }
@@ -243,6 +244,12 @@ void ros_mqtt_connections::manager::Bridge::bridge_mqtt_to_ros() {
     }
 
     try {
+        ros_add_two_ints_service_client_ptr_ = ros_node_ptr_->create_client<example_interfaces::srv::AddTwoInts>("add_two_ints_service");
+    } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
+        std::cerr << "[MQTT to ROS] /add_two_ints bridge err : " << rcl_expn.what() << '\n';
+    }
+
+    try {
         ros_map_server_map_service_client_ptr_ = ros_node_ptr_->create_client<nav_msgs::srv::GetMap>(ros_topics::to_ros::map_server_map);
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
         std::cerr << "[MQTT to ROS] /map_server/map bridge err : " << rcl_expn.what() << '\n';
@@ -286,6 +293,26 @@ void ros_mqtt_connections::manager::Bridge::bridge_mqtt_to_ros(std::string& mqtt
         } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
             std::cerr << "[MQTT to ROS] publish initial_pose error : " << rcl_expn.what() << '\n';
         }
+    } else if(mqtt_topic == mqtt_topics::from_rcs::add_two_ints) {
+        try {
+            std::cout << "[MQTT to ROS] service call to /add_two_ints_service " << '\n';
+            while (!ros_add_two_ints_service_client_ptr_->wait_for_service(std::chrono::seconds(1))) {
+                if (!rclcpp::ok()) {
+                    std::cout << "[MQTT to ROS] interrupted while waiting /add_two_ints service..." << '\n';
+                }
+            }
+            std::cout << "[MQTT to ROS] /add_two_ints service is ready!" << '\n';
+            auto request = std::make_shared<example_interfaces::srv::AddTwoInts::Request>();
+            request->a = 40;
+            request->b = 60;
+            auto result_future = ros_add_two_ints_service_client_ptr_->async_send_request(request);
+            auto result = result_future.get();
+            std::cout << "[MQTT to ROS] /add_two_ints result of " << request->a << " + " << request->b << " = " << result->sum << '\n';
+        } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
+            std::cerr << "[MQTT to ROS] call /add_two_ints error : " << rcl_expn.what() << '\n';
+        }
+    } else {
+        return;
     }
     // else if(mqtt_topic == mqtt_topics::from_rcs::map_server_map) {
     //     try {
