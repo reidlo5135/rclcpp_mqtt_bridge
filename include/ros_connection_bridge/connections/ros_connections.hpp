@@ -101,6 +101,9 @@ namespace ros_connections {
                 rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr ros_odom_publisher_ptr_;
                 rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr ros_global_plan_publisher_ptr_;
                 rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr ros_local_plan_publisher_ptr_;
+                rclcpp::Publisher<nav_msgs::srv::GetMap_Response>::SharedPtr ros_map_server_map_service_publisher_ptr_;
+                rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ros_error_controller_ptr_;
+                rclcpp::Client<nav_msgs::srv::GetMap>::SharedPtr ros_map_server_map_service_client_ptr_;
                 rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
                 rclcpp::Subscription<geometry_msgs::msg::Pose>::SharedPtr ros_robot_pose_subscription_ptr_;
                 rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr ros_scan_subscription_ptr_;
@@ -109,6 +112,7 @@ namespace ros_connections {
                 rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_ptr_;
                 rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_global_plan_subscription_ptr_;
                 rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_local_plan_subscription_ptr_;
+                rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_map_server_map_service_subscription_ptr_;
                 rclcpp::Service<example_interfaces::srv::AddTwoInts>::SharedPtr ros_add_two_ints_service_server_ptr_;
                 void initialize_publishers();
                 void initialize_subscriptions();
@@ -166,6 +170,11 @@ namespace ros_topics {
             const char * odom = "connection_bridge/odom";
             const char * global_plan = "connection_bridge/global_plan";
             const char * local_plan = "conenction_bridge/local_plan";
+            const char * add_two_ints = "connection_bridge/add_two_ints";
+            const char * map_server_map = "connection_bridge/map_server/map";
+        }
+        namespace exceptions {
+            const char * error = "connection_bridge/error";
         }
     }
     namespace from_mqtt {
@@ -178,7 +187,43 @@ namespace ros_topics {
             const char * chatter = "mqtt_bridge/chatter";
             const char * cmd_vel = "mqtt_bridge/cmd_vel";
             const char * initial_pose = "mqtt_bridge/initial_pose";
+            const char * map_server_map = "mqtt_bridge/map_server/map";
         }
+    }
+}
+
+namespace ros_services {
+    namespace to_ros {
+        const char * add_two_ints = "/add_two_ints";
+        const char * map_server_map = "/map_server/map";
+    }
+    namespace from_ros {
+        const char * add_two_ints = "mqtt_bridge/add_two_ints";
+        const char * map_server_map = "mqtt_bridge/map_server/map";
+    }
+    namespace exceptions {
+        const char * map_server_map_timed_out = "/map_server/map service is not available";
+    }
+}
+
+namespace ros_actions {
+    namespace to_ros {
+        
+    }
+    namespace from_ros {
+
+    }
+}
+
+namespace ros_error {
+    namespace api {
+        const char * error = "connection_bridge/error";
+    }
+    namespace code {
+        const char * map_server_map_timed_out = "-1000";
+    }
+    namespace message {
+        const char * map_server_map_timed_out = "/map_server/map service is not available";
     }
 }
 

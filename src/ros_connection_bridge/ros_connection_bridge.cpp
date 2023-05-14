@@ -125,10 +125,34 @@ void ros_connections::ros_connections_to_mqtt::Bridge::initialize_publishers() {
     try {
         ros_add_two_ints_service_server_ptr_ = ros_node_ptr_->create_service<example_interfaces::srv::AddTwoInts>(
             "add_two_ints_service",
-            handle_add_two_ints_service
+            &handle_add_two_ints_service
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
-        std::cerr << "[ROS to MQTT] /add_two_ints bridge err : " << rcl_expn.what() << '\n';
+        std::cerr << "[ROS to MQTT] /add_two_ints service server bridge err : " << rcl_expn.what() << '\n';
+    }
+
+    try {
+        ros_map_server_map_service_publisher_ptr_ = ros_node_ptr_->create_publisher<nav_msgs::srv::GetMap_Response>(
+            ros_topics::to_mqtt::bridge::map_server_map,
+            rclcpp::QoS(rclcpp::QoS(ros_default_qos_))
+        );
+    } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
+        std::cerr << "[ROS to MQTT] /map_server/map service server bridge err : " << rcl_expn.what() << '\n';
+    }
+
+    try {
+        ros_map_server_map_service_client_ptr_ = ros_node_ptr_->create_client<nav_msgs::srv::GetMap>(ros_services::to_ros::map_server_map);
+    } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
+        std::cerr << "[ROS to MQTT] /map_server/map bridge err : " << rcl_expn.what() << '\n';
+    }
+
+    try {
+        ros_error_controller_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(
+            ros_error::api::error,
+            rclcpp::QoS(rclcpp::KeepLast(ros_default_qos_))
+        );
+    } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
+
     }
 }
 
@@ -235,6 +259,45 @@ void ros_connections::ros_connections_to_mqtt::Bridge::initialize_subscriptions(
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
         std::cerr << "[ROS to MQTT] /local_plan bridge err : " << rcl_expn.what() << '\n';
     }
+
+    try {
+        ros_map_server_map_service_subscription_ptr_ = ros_node_ptr_->create_subscription<std_msgs::msg::String>(
+            ros_topics::from_mqtt::bridge::map_server_map,
+            rclcpp::QoS(rclcpp::KeepLast(ros_default_qos_)),
+            [this](const std_msgs::msg::String::SharedPtr callback_map_server_map_request_data) {
+                std::cout << "[ROS to MQTT] service call to /map_server/map" << '\n';
+                bool is_map_server_map_service_ready = ros_map_server_map_service_client_ptr_->wait_for_service(std::chrono::seconds(5));
+                if(is_map_server_map_service_ready) {
+                    std::cout << "[ROS to MQTT] /map_server/map service is ready!" << '\n';
+                } else {
+                    std::cerr << "[ROS to MQTT] wait for /map_server/map service..." << '\n';
+                }
+                std::shared_ptr<nav_msgs::srv::GetMap_Request> map_request = std::make_shared<nav_msgs::srv::GetMap_Request>();
+                std::shared_future<std::shared_ptr<nav_msgs::srv::GetMap_Response>> map_response_future = ros_map_server_map_service_client_ptr_->async_send_request(map_request);
+
+                const unsigned int map_server_map_service_wait_time = 3;
+                std::future_status map_status = map_response_future.wait_for(std::chrono::seconds(map_server_map_service_wait_time));
+                for(int i=1;i<=map_server_map_service_wait_time;i++) {
+                    std::cout << "[ROS to MQTT] wait for /map_server/map response ... in " << i << "second" << '\n';
+                }
+
+                if (map_status == std::future_status::ready) {
+                    const std::shared_ptr<nav_msgs::srv::GetMap_Response> map_server_map_service_call_result = map_response_future.get();
+                    std::cout << "[ROS to MQTT] /map_server/map size of map : " << map_server_map_service_call_result->map.info.width * map_server_map_service_call_result->map.info.height << '\n';
+                    ros_map_server_map_service_publisher_ptr_->publish(*map_server_map_service_call_result);
+                } else if (map_status == std::future_status::timeout) {
+                    std::cerr << "[ROS to MQTT] /map_server/map service call timed out!" << '\n';
+                    
+                    return;
+                } else {
+                    std::cerr << "[ROS to MQTT] Error while waiting for /map_server/map service response!" << '\n';
+                    return;
+                }
+            }
+        );
+    } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
+        std::cerr << "[ROS to MQTT] /map_server/map bridge err : " << rcl_expn.what() << '\n';
+    }
 }
 
 /**
@@ -285,7 +348,7 @@ void ros_connections::ros_connections_from_mqtt::Bridge::initialize_publishers()
             rclcpp::QoS(rclcpp::KeepLast(ros_default_qos_))
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
-        std::cerr << "[MQTT to ROS] /chatter bridge err : " << rcl_expn.what() << '\n';
+        std::cerr << "[ROS to MQTT] /chatter bridge err : " << rcl_expn.what() << '\n';
     }
 
     try {
@@ -294,7 +357,7 @@ void ros_connections::ros_connections_from_mqtt::Bridge::initialize_publishers()
             rclcpp::QoS(rclcpp::KeepLast(ros_default_qos_))
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
-        std::cerr << "[MQTT to ROS] /cmd_vel bridge err : " << rcl_expn.what() << '\n';
+        std::cerr << "[ROS to MQTT] /cmd_vel bridge err : " << rcl_expn.what() << '\n';
     }
 
     try {
@@ -303,7 +366,7 @@ void ros_connections::ros_connections_from_mqtt::Bridge::initialize_publishers()
             rclcpp::QoS(rclcpp::KeepLast(ros_default_qos_))
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
-        std::cerr << "[MQTT to ROS] /initialpose bridge err : " << rcl_expn.what() << '\n';
+        std::cerr << "[ROS to MQTT] /initialpose bridge err : " << rcl_expn.what() << '\n';
     }
 }
 
@@ -324,7 +387,7 @@ void ros_connections::ros_connections_from_mqtt::Bridge::initialize_subscription
             }
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
-        std::cerr << "[MQTT to ROS] /chatter bridge err : " << rcl_expn.what() << '\n';
+        std::cerr << "[ROS to MQTT] /chatter bridge err : " << rcl_expn.what() << '\n';
     }
 
     try {
@@ -336,7 +399,7 @@ void ros_connections::ros_connections_from_mqtt::Bridge::initialize_subscription
             }
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
-        std::cerr << "[MQTT to ROS] /cmd_vel bridge err : " << rcl_expn.what() << '\n';
+        std::cerr << "[ROS to MQTT] /cmd_vel bridge err : " << rcl_expn.what() << '\n';
     }
 
     try {
@@ -348,7 +411,7 @@ void ros_connections::ros_connections_from_mqtt::Bridge::initialize_subscription
             }
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
-        std::cerr << "[MQTT to ROS] /initialpose bridge err : " << rcl_expn.what() << '\n';
+        std::cerr << "[ROS to MQTT] /initialpose bridge err : " << rcl_expn.what() << '\n';
     }
 }
 
