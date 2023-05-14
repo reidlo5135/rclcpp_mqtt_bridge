@@ -96,8 +96,8 @@ void ros_mqtt_connections::manager::Bridge::grant_mqtt_subscriptions() {
     this->mqtt_subscribe(mqtt_topics::from_rcs::cmd_vel);
     this->mqtt_subscribe(mqtt_topics::from_rcs::initial_pose);
     this->mqtt_subscribe(mqtt_topics::from_rcs::add_two_ints);
+    this->mqtt_subscribe(mqtt_topics::from_rcs::map_server_map);
     // this->mqtt_subscribe(mqtt_topics::from_rcs::navigate_to_pose);
-    // this->mqtt_subscribe(mqtt_topics::from_rcs::map_server_map);
 }
 
 /**
@@ -117,7 +117,11 @@ void ros_mqtt_connections::manager::Bridge::bridge_ros_to_mqtt() {
             [this](const std_msgs::msg::String::SharedPtr callback_chatter_data) {
                 if(callback_chatter_data == nullptr || callback_chatter_data == NULL) throw std::runtime_error("[ROS to MQTT] chatter callback is null");
                 std::string chatter_json_str = std_msgs_converter_ptr_->convert_chatter_to_json(callback_chatter_data);
-                mqtt_publish(mqtt_topics::to_rcs::chatter, chatter_json_str);
+                try {
+                    mqtt_publish(mqtt_topics::to_rcs::chatter, chatter_json_str);
+                } catch(const mqtt::exception& mqtt_expn) {
+                    std::cerr << "[ROS to MQTT] /chatter mqtt response err : " << mqtt_expn.what() << '\n';
+                }
             }
         );;
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
@@ -131,7 +135,11 @@ void ros_mqtt_connections::manager::Bridge::bridge_ros_to_mqtt() {
             [this](const geometry_msgs::msg::Pose::SharedPtr callback_robot_pose_data) {
                 if(callback_robot_pose_data == nullptr || callback_robot_pose_data == NULL) throw std::runtime_error("[ROS to MQTT] robot_pose callback is null");
                 std::string robot_pose_json_str = geometry_msgs_converter_ptr_->convert_pose_to_json(callback_robot_pose_data);
-                mqtt_publish(mqtt_topics::to_rcs::robot_pose, robot_pose_json_str);
+                try {
+                    mqtt_publish(mqtt_topics::to_rcs::robot_pose, robot_pose_json_str);   
+                } catch(const mqtt::exception& mqtt_expn) {
+                    std::cerr << "[ROS to MQTT] /robot_pose mqtt response err : " << mqtt_expn.what() << '\n';
+                }
             }
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
@@ -145,7 +153,11 @@ void ros_mqtt_connections::manager::Bridge::bridge_ros_to_mqtt() {
             [this](const geometry_msgs::msg::Twist::SharedPtr callback_twist_data) {
                 if(callback_twist_data == nullptr || callback_twist_data == NULL) throw std::runtime_error("[ROS to MQTT] twist callback is null");
                 std::string twist_json_str = geometry_msgs_converter_ptr_->convert_twist_to_json(callback_twist_data);
-                mqtt_publish(mqtt_topics::to_rcs::cmd_vel, twist_json_str);
+                try {
+                    mqtt_publish(mqtt_topics::to_rcs::cmd_vel, twist_json_str);
+                } catch(const mqtt::exception& mqtt_expn) {
+                    std::cerr << "[ROS to MQTT] /cmd_vel mqtt response err : "  << '\n';
+                }
             }
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
@@ -159,7 +171,11 @@ void ros_mqtt_connections::manager::Bridge::bridge_ros_to_mqtt() {
             [this](const sensor_msgs::msg::LaserScan::SharedPtr callback_scan_data) {
                 if(callback_scan_data == nullptr || callback_scan_data == NULL) throw std::runtime_error("[ROS to MQTT] scan callback is null");
                 std::string scan_json_str = sensor_msgs_converter_ptr_->convert_scan_to_json(callback_scan_data);
-                mqtt_publish(mqtt_topics::to_rcs::scan, scan_json_str);
+                try {
+                    mqtt_publish(mqtt_topics::to_rcs::scan, scan_json_str);
+                } catch(const mqtt::exception& mqtt_expn) {
+                    std::cerr << "[ROS to MQTT] /scan mqtt response err : "  << '\n';
+                }
             }
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
@@ -173,7 +189,11 @@ void ros_mqtt_connections::manager::Bridge::bridge_ros_to_mqtt() {
             [this](const tf2_msgs::msg::TFMessage::SharedPtr callback_tf_data) {
                 if(callback_tf_data == nullptr || callback_tf_data == NULL) throw std::runtime_error("[ROS to MQTT] tf callback is null");
                 std::string tf_json_str = tf2_msgs_converter_ptr_->convert_tf_to_json(callback_tf_data);
-                mqtt_publish(mqtt_topics::to_rcs::tf, tf_json_str);
+                try {
+                    mqtt_publish(mqtt_topics::to_rcs::tf, tf_json_str);
+                } catch(const mqtt::exception& mqtt_expn) {
+                    std::cerr << "[ROS to MQTT] /tf mqtt response err : "  << '\n';
+                }
             }
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
@@ -187,7 +207,11 @@ void ros_mqtt_connections::manager::Bridge::bridge_ros_to_mqtt() {
             [this](const tf2_msgs::msg::TFMessage::SharedPtr callback_tf_static_data) {
                 if(callback_tf_static_data == nullptr || callback_tf_static_data == NULL) throw std::runtime_error("[ROS to MQTT] tf_static callback is null");
                 std::string tf_static_json_str = tf2_msgs_converter_ptr_->convert_tf_to_json(callback_tf_static_data);
-                mqtt_publish(mqtt_topics::to_rcs::tf_static, tf_static_json_str);
+                try {
+                    mqtt_publish(mqtt_topics::to_rcs::tf_static, tf_static_json_str);
+                } catch(const mqtt::exception& mqtt_expn) {
+                    std::cerr << "[ROS to MQTT] /tf_static mqtt response err : "  << '\n';
+                }
             }
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
@@ -201,11 +225,63 @@ void ros_mqtt_connections::manager::Bridge::bridge_ros_to_mqtt() {
             [this](const nav_msgs::msg::Odometry::SharedPtr callback_odom_data) {
                 if(callback_odom_data == nullptr || callback_odom_data == NULL) throw std::runtime_error("[ROS to MQTT] odom callback is null");
                 std::string odom_json_str = nav_msgs_converter_ptr_->convert_odom_to_json(callback_odom_data);
-                mqtt_publish(mqtt_topics::to_rcs::odom, odom_json_str);
+                try {
+                    mqtt_publish(mqtt_topics::to_rcs::odom, odom_json_str);
+                } catch(const mqtt::exception& mqtt_expn) {
+                    std::cerr << "[ROS to MQTT] /odom mqtt response err : "  << '\n';
+                }
             }
         );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
         std::cerr << "[ROS to MQTT] /odom bridge err : " << rcl_expn.what() << '\n';
+    }
+
+    try {
+        ros_add_two_ints_subscription_ptr_ = ros_node_ptr_->create_subscription<example_interfaces::srv::AddTwoInts_Response>(
+            ros_topics::from_ros::add_two_ints,
+            rclcpp::QoS(rclcpp::KeepLast(ros_default_qos_)),
+            [this](const example_interfaces::srv::AddTwoInts_Response::SharedPtr callback_add_two_ints_data) {
+                if(callback_add_two_ints_data == nullptr || callback_add_two_ints_data == NULL) throw std::runtime_error("[ROS to MQTT] add two ints callback is null");
+                std::string add_two_ints_response = std::to_string(callback_add_two_ints_data->sum);
+                try {
+                    mqtt_publish(mqtt_topics::to_rcs::add_two_ints, add_two_ints_response);
+                } catch(const mqtt::exception& mqtt_expn) {
+                    std::cerr << "[ROS to MQTT] /add_two_ints/response mqtt response err : "  << '\n';
+                }
+            }
+        );
+    } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
+        std::cerr << "[ROS to MQTT] /add_two_ints bridge err : " << rcl_expn.what() << '\n';
+    }
+
+    try {
+        ros_map_server_map_subscription_ptr_ = ros_node_ptr_->create_subscription<nav_msgs::srv::GetMap_Response>(
+            ros_topics::from_ros::map_server_map,
+            rclcpp::QoS(rclcpp::KeepLast(ros_default_qos_)),
+            [this](const nav_msgs::srv::GetMap_Response::SharedPtr callback_map_server_map_data) {
+                if(callback_map_server_map_data == nullptr || callback_map_server_map_data == NULL) {
+                    throw std::runtime_error("[ROS to MQTT] map server map callback is null");
+                } else if(callback_map_server_map_data->map.header.frame_id == ros_services::exceptions::map_server_map_timed_out) {
+                    std::cerr << "[ROS to MQTT] /map_server/map service timed out"  << '\n';
+                    try {
+                        mqtt_publish(mqtt_topics::to_rcs::map_server_map, ros_services::exceptions::map_server_map_timed_out);
+                    } catch(const mqtt::exception& mqtt_expn) {
+                        std::cerr << "[ROS to MQTT] /map_server/map/response mqtt response err : " << mqtt_expn.what()  << '\n';
+                    }
+                } else {
+                    std::cout << "[ROS to MQTT] /map_server/map/response callback : " << callback_map_server_map_data->map.info.width << '\n';
+                    std::string parsed_map_server_map_response = nav_msgs_converter_ptr_->convert_map_response_to_json(callback_map_server_map_data);
+                    std::cout << "[MQTT to ROS] parsed map result : " << parsed_map_server_map_response << '\n';
+                    try {
+                        mqtt_publish(mqtt_topics::to_rcs::map_server_map, parsed_map_server_map_response);
+                    } catch(const mqtt::exception& mqtt_expn) {
+                        std::cerr << "[ROS to MQTT] /map_server/map/response mqtt response err : " << mqtt_expn.what()  << '\n';
+                    }
+                }
+            }
+        );
+    } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
+        std::cerr << "[ROS to MQTT] /map_server_map bridge err : " << rcl_expn.what() << '\n';
     }
 }
 
@@ -250,9 +326,21 @@ void ros_mqtt_connections::manager::Bridge::bridge_mqtt_to_ros() {
     }
 
     try {
-        ros_map_server_map_service_client_ptr_ = ros_node_ptr_->create_client<nav_msgs::srv::GetMap>(ros_topics::to_ros::map_server_map);
+        ros_add_two_ints_publisher_ptr_ = ros_node_ptr_->create_publisher<example_interfaces::srv::AddTwoInts_Response>(
+            ros_topics::to_ros::add_two_ints,
+            rclcpp::QoS(rclcpp::KeepLast(ros_default_qos_))
+        );
     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
-        std::cerr << "[MQTT to ROS] /map_server/map bridge err : " << rcl_expn.what() << '\n';
+        std::cerr << "[MQTT to ROS] /add_two_ints publish bridge err : " << rcl_expn.what() << '\n';
+    }
+
+    try {
+        ros_map_server_map_publisher_ptr_ = ros_node_ptr_->create_publisher<std_msgs::msg::String>(
+            ros_topics::to_ros::map_server_map,
+            rclcpp::QoS(rclcpp::KeepLast(ros_default_qos_))
+        );
+    } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
+        std::cerr << "[MQTT to ROS] /map_server/map publish bridge err : " << rcl_expn.what() << '\n';
     }
 }
 
@@ -296,48 +384,36 @@ void ros_mqtt_connections::manager::Bridge::bridge_mqtt_to_ros(std::string& mqtt
     } else if(mqtt_topic == mqtt_topics::from_rcs::add_two_ints) {
         try {
             std::cout << "[MQTT to ROS] service call to /add_two_ints_service " << '\n';
-            while (!ros_add_two_ints_service_client_ptr_->wait_for_service(std::chrono::seconds(1))) {
+            bool is_add_two_ints_service_ready = ros_add_two_ints_service_client_ptr_->wait_for_service(std::chrono::seconds(1));
+            while (!is_add_two_ints_service_ready) {
                 if (!rclcpp::ok()) {
                     std::cout << "[MQTT to ROS] interrupted while waiting /add_two_ints service..." << '\n';
+                    break;
+                } else if(is_add_two_ints_service_ready) {
+                    std::cout << "[MQTT to ROS] /add_two_ints service is ready!" << '\n';
+                    break;
                 }
             }
-            std::cout << "[MQTT to ROS] /add_two_ints service is ready!" << '\n';
-            auto request = std::make_shared<example_interfaces::srv::AddTwoInts::Request>();
-            request->a = 40;
-            request->b = 60;
-            auto result_future = ros_add_two_ints_service_client_ptr_->async_send_request(request);
-            auto result = result_future.get();
-            std::cout << "[MQTT to ROS] /add_two_ints result of " << request->a << " + " << request->b << " = " << result->sum << '\n';
+            std::shared_ptr<example_interfaces::srv::AddTwoInts_Request> add_two_ints_request = std::make_shared<example_interfaces::srv::AddTwoInts::Request>();
+            add_two_ints_request->a = 40;
+            add_two_ints_request->b = 60;
+            std::shared_future<std::shared_ptr<example_interfaces::srv::AddTwoInts_Response>> add_two_ints_result_future = ros_add_two_ints_service_client_ptr_->async_send_request(add_two_ints_request);
+            const std::shared_ptr<example_interfaces::srv::AddTwoInts_Response> add_two_ints_service_call_result = add_two_ints_result_future.get();
+            std::cout << "[MQTT to ROS] /add_two_ints result of " << add_two_ints_request->a << " + " << add_two_ints_request->b << " = " << add_two_ints_service_call_result->sum << '\n';
+            ros_add_two_ints_publisher_ptr_->publish(*add_two_ints_service_call_result);
         } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
             std::cerr << "[MQTT to ROS] call /add_two_ints error : " << rcl_expn.what() << '\n';
+        }
+    } else if(mqtt_topic == mqtt_topics::from_rcs::map_server_map) {
+        try {
+            const std_msgs::msg::String::SharedPtr empty_request = std::make_shared<std_msgs::msg::String>();
+            ros_map_server_map_publisher_ptr_->publish(*empty_request);
+        } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
+            std::cerr << "[MQTT to ROS] call /map_server/map error : " << rcl_expn.what() << '\n';
         }
     } else {
         return;
     }
-    // else if(mqtt_topic == mqtt_topics::from_rcs::map_server_map) {
-    //     try {
-    //         std::cout << "[MQTT to ROS] received map server map request!" << '\n';
-    //         while(!ros_map_server_map_service_client_ptr_->wait_for_service(std::chrono::seconds(1))) {
-    //             if (!rclcpp::ok()) {
-    //                 std::cerr << "[MQTT to ROS] interrupted while waiting /map_server/map service..." << '\n';
-    //                 break;
-    //             }
-    //             std::cout << "[MQTT to ROS] wait for /map_server/map service... " << '\n';
-    //         }
-    //         std::cout << "[MQTT to ROS] /map_server/map service is ready!" << '\n';
-    //         // nav_msgs::srv::GetMap_Request::SharedPtr map_request = std::make_shared<nav_msgs::srv::GetMap_Request>();
-    //         auto map_request = std::make_shared<nav_msgs::srv::GetMap_Request>();
-    //         auto map_response_future = ros_map_server_map_service_client_ptr_->async_send_request(map_request);
-    //         auto map_call_result = map_response_future.get();
-    //         // std::shared_future<std::shared_ptr<nav_msgs::srv::GetMap_Response>> map_response_future = ros_map_server_map_service_client_ptr_->async_send_request(map_request);
-    //         // const std::shared_ptr<nav_msgs::srv::GetMap_Response> map_call_result = map_response_future.get();
-    //         std::string parsed_map_result = nav_msgs_converter_ptr_->convert_map_response_to_json(map_call_result);
-    //         std::cout << "[MQTT to ROS] parsed map result : " << parsed_map_result << '\n';
-    //         mqtt_publish(mqtt_topics::to_rcs::map_server_map, "parsed_map_result");
-    //     } catch(const rclcpp::exceptions::RCLError& rcl_expn) {
-    //         std::cerr << "[MQTT to ROS] call /map_server/map error : " << rcl_expn.what() << '\n';
-    //     }
-    // }
 }
 
 /**
