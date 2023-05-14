@@ -28,6 +28,8 @@
 #include <unistd.h>
 #include <signal.h>
 #include <functional>
+#include <inttypes.h>
+#include <memory>
 
 /**
  * include rclcpp header files
@@ -73,6 +75,8 @@
 */
 #include "tf2_msgs/msg/tf_message.hpp"
 
+#include "example_interfaces/srv/add_two_ints.hpp"
+
 // define ros default qos
 #define ROS_DEFAULT_QOS 10
 
@@ -105,9 +109,11 @@ namespace ros_connections {
                 rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr ros_odom_subscription_ptr_;
                 rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_global_plan_subscription_ptr_;
                 rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ros_local_plan_subscription_ptr_;
+                rclcpp::Service<example_interfaces::srv::AddTwoInts>::SharedPtr ros_add_two_ints_service_server_ptr_;
                 void initialize_publishers();
                 void initialize_subscriptions();
                 void initialize_bridge();
+                static void handle_add_two_ints_service(const std::shared_ptr<rmw_request_id_t> request_header, const std::shared_ptr<example_interfaces::srv::AddTwoInts::Request> request, const std::shared_ptr<example_interfaces::srv::AddTwoInts::Response> response);
             public :
                 Bridge(std::shared_ptr<rclcpp::Node> ros_node_ptr);
                 virtual ~Bridge();

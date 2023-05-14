@@ -26,6 +26,8 @@
 #include <iostream>
 #include <math.h>
 #include <cstring>
+#include <cinttypes>
+#include <memory>
 #include <unistd.h>
 #include <signal.h>
 #include <functional>
@@ -71,13 +73,19 @@
 #include "nav_msgs/srv/get_map.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "nav2_msgs/action/navigate_to_pose.hpp"
-#include "ros_mqtt_bridge/connections/ros_mqtt_message_converter.hpp"
+
+#include "example_interfaces/srv/add_two_ints.hpp"
 
 /**
  * include tf2_msgs' header files
  * @see tf2_msgs::msg::TFMessage
 */
 #include "tf2_msgs/msg/tf_message.hpp"
+
+/**
+ * include ros_mqtt_message_converter's header file
+*/
+#include "ros_mqtt_bridge/connections/ros_mqtt_message_converter.hpp"
 
 #define LOG_ROS_MQTT_BRIDGE "[ROS-MQTT-BRIDGE]"
 #define LOG_ROS_MQTT_CONNECTION_TO_ROS "[MQTT to ROS]"
@@ -117,6 +125,7 @@ namespace ros_mqtt_connections {
                 rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr ros_cmd_vel_publisher_ptr_;
                 rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr ros_initial_pose_publisher_ptr_;
                 rclcpp::Client<nav_msgs::srv::GetMap>::SharedPtr ros_map_server_map_service_client_ptr_;
+                rclcpp::Client<example_interfaces::srv::AddTwoInts>::SharedPtr ros_add_two_ints_service_client_ptr_;
                 rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ros_chatter_subscription_ptr_;
                 rclcpp::Subscription<geometry_msgs::msg::Pose>::SharedPtr ros_robot_pose_subscription_ptr_;
                 rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr ros_scan_subscription_ptr_;
@@ -157,6 +166,7 @@ namespace ros_topics {
         const char * initial_pose = "mqtt_bridge/initial_pose";
         const char * navigate_to_pose = "mqtt_bridge/navigate_to_pose";
         const char * map_server_map = "/map_server/map";
+        const char * add_two_ints = "/add_two_ints";
     }
     namespace from_ros {
         const char * chatter = "/chatter";
@@ -189,6 +199,7 @@ namespace mqtt_topics {
         const char * cmd_vel = "/callback/cmd_vel";
         const char * navigate_to_pose = "/navigate_to_pose/response";
         const char * map_server_map = "/map_server/map/response";
+        const char * add_two_ints = "/add_two_ints/response";
     }
     namespace from_rcs {
         const char * chatter = "/chatter";
@@ -196,6 +207,7 @@ namespace mqtt_topics {
         const char * initial_pose = "/initialpose";
         const char * navigate_to_pose = "/navigate_to_pose/request";
         const char * map_server_map = "/map_server/map/request";
+        const char * add_two_ints = "/add_two_ints/request";
     }
 }
 
